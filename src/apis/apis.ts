@@ -1,0 +1,1 @@
+export const baseUrl:string = 'https://679e6fca946b0e23c06363c9.mockapi.io/api/assessement';

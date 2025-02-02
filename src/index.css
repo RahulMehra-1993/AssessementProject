@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@400;600;700&display=swap');
+
+:root {
+  font-family: 'Lato', sans-serif; /* Default font */
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #1e1e1e; /* Dark background for better contrast */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 600; /* Slightly bolder links */
+  color: #63a69f; /* Light teal color for links */
+  text-decoration: inherit;
+}
+
+a:hover {
+  color: #ff5733; /* Hover state with orange color */
+  text-decoration: underline;
+}
+
+html {
+  font-size: 16px;
+  font-family: 'Montserrat', sans-serif; /* Montserrat for headings */
+  font-weight: 400;
+  line-height: 1.5;
+  color: #1e1e1e;
+  background-color: #f7f7f7; /* Lighter background for better visibility */
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f7f7f7;
+  color: #333;
+}
+
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  font-weight: 700; /* Bold header */
+  color: #212121;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Light background for the track */
+  border-radius: 10px; /* Rounded corners for the track */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #69a1d3; /* Darker color for the thumb */
+  border-radius: 10px; /* Rounded corners for the thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Darker on hover */
+}
+
+
+button {
+  border-radius: 12px; /* More rounded button */
+  border: 2px solid transparent;
+  padding: 0.8em 1.5em;
+  font-size: 1.1em;
+  font-weight: 600; /* Slightly bolder text */
+  font-family: 'Montserrat', sans-serif;
+  background-color: #3498db; /* Fresh blue background */
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+button:hover {
+  border-color: #2980b9; /* Darker blue border on hover */
+  background-color: #2980b9; /* Darker shade of blue */
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px solid #ff5733; /* Orange outline for accessibility */
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #333; /* Darker text for better readability */
+    background-color: #ffffff; /* Light background for light mode */
+  }
+
+  a {
+    color: #3498db; /* Blue link color */
+  }
+
+  a:hover {
+    color: #2980b9; /* Darker blue on hover */
+  }
+
+  button {
+    background-color: #3498db;
+    color: #fff;
+  }
+
+  button:hover {
+    background-color: #2980b9;
+  }
+}
