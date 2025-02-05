@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { Modal, Box, IconButton} from "@mui/material";
+import { Modal, Box, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 interface ModalProps {
@@ -20,6 +20,15 @@ const modalRoot =
   })();
 
 const CustomModal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
+  // Prevent modal close when overlay is clicked, unless `isOpen` is true
+  const handleOverlayClick = (event: React.MouseEvent) => {
+    console.log(event)
+    // Only close modal if isOpen is true and event target is the overlay
+    if (isOpen && event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
   return ReactDOM.createPortal(
     <Modal open={isOpen} onClose={onClose} closeAfterTransition>
       <Box
@@ -33,7 +42,6 @@ const CustomModal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
           bgcolor: "white", // Clean white background for the modal
           borderRadius: 8, // Rounded corners
           boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.1)", // Soft shadow for the modal
-          padding: 3,
           outline: "none",
           zIndex: 1300,
           overflow: "hidden",
@@ -52,6 +60,7 @@ const CustomModal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
             zIndex: -1,
             borderRadius: 8,
           }}
+          onClick={handleOverlayClick} // Handle overlay click
         />
 
         {/* Close Icon */}

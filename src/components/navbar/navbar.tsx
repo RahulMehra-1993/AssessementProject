@@ -11,37 +11,27 @@ import {
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import styles from "./navbar.module.css";
+import UserSkelton from "../../shared/skeltons/user-skelton";
+import { User } from "../../models/user/user.model";
 
 interface NavbarProps {
-  data: {
-    createdAt: string;
-    name: string;
-    email: string;
-    avatar: string;
-    id: string;
-    message: string;
-  }[];
+  data: User[]; // Accepts a single object instead of an array
 }
 
 const Navbar: React.FC<NavbarProps> = ({ data }) => {
-  const [user, setUser] = useState<{
-    name?: string;
-    email?: string;
-    avatar?: string;
-    message?: string;
-  } | null>(null);
+  const [user, setUser] = useState<User[] | null | undefined>([]);
 
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm")); // Correctly using breakpoints for small screens
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     if (data.length > 0) {
-      setUser(data[0]); // Take the first item from the passed data
+      setUser(data); // Directly set data as user
     }
   }, [data]);
 
   return (
-    <AppBar position="sticky" className={styles.navbar} sx={{ boxShadow: 4 }}>
+    <AppBar className={styles.navbar} sx={{ boxShadow: 4 }}>
       <Toolbar
         sx={{
           display: "flex",
@@ -68,20 +58,10 @@ const Navbar: React.FC<NavbarProps> = ({ data }) => {
 
         {/* User Section */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          {/* Avatar or Account Icon */}
-          {user?.avatar ? (
-            <Avatar
-              src={user.avatar}
-              alt={user.name}
-              className={styles.userAvatar}
-              sx={{ width: 40, height: 40 }}
-            />
-          ) : (
-            <AccountCircleIcon
-              className={styles.userIcon}
-              sx={{ fontSize: 40 }}
-            />
-          )}
+          <AccountCircleIcon
+            className={styles.userIcon}
+            sx={{ fontSize: 40 }}
+          />
 
           {/* Divider */}
           <Divider
@@ -91,18 +71,16 @@ const Navbar: React.FC<NavbarProps> = ({ data }) => {
           />
 
           {/* User Email / Guest */}
-          {user?.email ? (
+          {user && user[0]?.email ? (
             <Typography
               variant="body1"
               className={styles.userEmail}
               sx={{ display: "flex", alignItems: "center" }}
             >
-              {user.email}
+              {user[0]?.email}
             </Typography>
           ) : (
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Typography variant="body1">Guest User</Typography>
-            </Box>
+            <UserSkelton />
           )}
         </Box>
       </Toolbar>

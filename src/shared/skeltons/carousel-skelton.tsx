@@ -8,6 +8,8 @@ const CarouselSKeleton = () => {
         flexDirection: "column",
         alignItems: "center",
         padding: 2,
+        minWidth:600,
+        width: 'max-content', // Use max-content"
       }}
     >
       {/* Skeleton for LinearProgress (progress bar) */}
@@ -15,6 +17,12 @@ const CarouselSKeleton = () => {
         variant="rectangular"
         width="90%"
         height={10}
+        sx={{ marginBottom: 2 }}
+      />
+      <Skeleton
+        variant="text"
+        width="40%"
+        height={20}
         sx={{ marginBottom: 2 }}
       />
 
@@ -33,13 +41,7 @@ const CarouselSKeleton = () => {
         ))}
       </Box>
 
-      {/* Skeleton for Question count */}
-      <Skeleton
-        variant="text"
-        width="40%"
-        height={20}
-        sx={{ marginBottom: 2 }}
-      />
+      
 
       {/* Skeleton for Card containing the question */}
       <Card
@@ -50,6 +52,7 @@ const CarouselSKeleton = () => {
           minHeight: 250,
           marginBottom: 3,
           padding: 2,
+          opacity:.8
         }}
       >
         <CardContent>
@@ -82,9 +85,7 @@ const CarouselSKeleton = () => {
           />
           <Skeleton variant="text" width="60%" height={30} />
         </CardContent>
-      </Card>
-
-      {/* Skeleton for Navigation buttons */}
+        {/* Skeleton for Navigation buttons */}
       <Box sx={{ display: "flex", justifyContent: "center", gap: 5, mb: 3 }}>
         <Skeleton
           variant="rectangular"
@@ -107,6 +108,9 @@ const CarouselSKeleton = () => {
         height={50}
         sx={{ marginTop: 2 }}
       />
+      </Card>
+
+      
     </Box>
   );
 };

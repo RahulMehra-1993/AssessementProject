@@ -4,3 +4,8 @@ export interface Question {
   options: string[];
   correct_answer: string;
 }
+
+
+export interface AssessmentProps {
+  questions: Question[];
+}

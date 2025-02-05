@@ -2,67 +2,76 @@ import { useEffect, useState } from "react";
 import styles from "./layout.module.css";
 import Navbar from "../../components/navbar/navbar";
 import CustomModal from "../../components/modal/modal";
-import { Typography, Skeleton, Box, Button, TextField } from "@mui/material";
-import { getData } from "../../apis/apiService";
+import { Typography, Box, TextField } from "@mui/material";
+import { getData } from "../../services/api-services";
+import { getData as getNgData } from "../../services/ngrok-api-service";
 import AssessmentCarousel from "../../components/carousel/carousel";
-import { Question } from "../../models/Assessement";
-import CarouselSKeleton from "../../shared/skeltons/carouselSkelton";
+import { Question } from "../../models/carousel/assessment.model";
+import CarouselSKeleton from "../../shared/skeltons/carousel-skelton";
+import UserSkelton from "../../shared/skeltons/user-skelton";
+import CustomDatePicker from "../../shared/date/date-picker";
+import CustomButton from "../../shared/buttons/custom-button";
+import { Dayjs } from "dayjs";
+import { User } from "../../models/user/user.model";
+import { QUESTIONS, USER } from "../../constants/api-constants/apis.enum";
 
-const Layout = () => {
-  const [user, setUser] = useState<
-    {
-      createdAt: string;
-      name: string;
-      email: string;
-      avatar: string;
-      id: string;
-      message: string;
-    }[]
-  >([]);
+interface NavbarProps {
+  data: User[]; // Accepts an array of users
+}
 
+const Layout: React.FC<NavbarProps> = () => {
+  const [user, setUser] = useState<User[]>([]);
   const [assessmentQuestions, setAssessmentQuestions] = useState<Question[]>(
     []
   );
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(true);
   const [isQuestionsFetched, setIsQuestionsFetched] = useState<boolean>(false);
-  const [showForm, setShowForm] = useState<boolean>(true); // Track form visibility
+  const [showForm, setShowForm] = useState<boolean>(false); // Show form after welcome message
   const [collegeName, setCollegeName] = useState<string>("");
-  const [passingYear, setPassingYear] = useState<string>("");
+  const [passingYear, setPassingYear] = useState<Dayjs | null>(null);
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    console.log("API URL:", apiUrl);
-    getData("/useremail").then((data) => {
-      if (data.length > 0) {
-        setUser(data);
-      }
+    const storedUser = sessionStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
       setLoading(false);
-    });
+      setIsModalOpen(false);
+      fetchAssessmentQuestions();
+    } else {
+      getData(USER).then((data) => {
+        setUser(data);
+        setLoading(false);
+      });
+    }
   }, []);
 
   const handleModalClose = () => {
-    setIsModalOpen(false);
-    fetchAssessmentQuestions();
+    if (!showForm) {
+      setShowForm(true); // Show form after the welcome message is closed
+    } 
   };
 
   const fetchAssessmentQuestions = () => {
     setLoading(true);
-    setTimeout(() => {
-      getData("/assessementquestion").then((data) => {
-        if (data.length > 0) {
-          setAssessmentQuestions(data);
-        }
-        setIsQuestionsFetched(true);
-        setLoading(false);
-      });
-    }, 5000);
+    getData(QUESTIONS).then((data) => {
+      setAssessmentQuestions(data);
+      setIsQuestionsFetched(true);
+      setLoading(false);
+    });
   };
 
   const handleSubmit = () => {
-    if (collegeName.trim() && passingYear.trim()) {
-      setShowForm(false); // Hide form and show message
+    if (collegeName.trim() && passingYear) {
+      sessionStorage.setItem("user", JSON.stringify(user));
+      setShowForm(false); // Hide form after submission
+      fetchAssessmentQuestions(); // Fetch the questions after form completion
+      setIsModalOpen(false);
     }
+  };
+
+  const handleYearChange = (newYear: Dayjs | null) => {
+    setPassingYear(newYear);
   };
 
   return (
@@ -79,126 +88,97 @@ const Layout = () => {
               mx: "auto",
             }}
           >
-            {showForm ? (
+            {!showForm ? (
               <>
                 <Typography
-                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "14px",
+
+                    textTransform: "capitalize",
+                    mb: 3,
+                    textAlign: "center",
+                  }}
+                >
+                  {user ? user[0]?.email : "No user found"}
+                  <br />
+                  Welcome! Please fill out your details to proceed.
+                </Typography>
+                <CustomButton
+                  onClick={handleModalClose}
+                  text="Continue"
+                  variant={"contained"}
+                  sx={{
+                    backgroundImage: "var(--theme-bg-primary)",
+                    color: "white",
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <Typography
                   sx={{
                     fontFamily: "'Poppins', sans-serif",
                     fontWeight: 600,
-                    fontSize: "1.4rem",
+                    fontSize: "18px",
                     color: "#222",
                     textTransform: "capitalize",
-                    mb: 2,
+                    mb: 3, // Increased margin bottom
+                    textAlign: "center", // Center the title
                   }}
                 >
                   Enter Your Details
                 </Typography>
                 <TextField
+                  autoComplete="off"
                   fullWidth
                   label="College Name"
                   variant="outlined"
                   value={collegeName}
                   onChange={(e) => setCollegeName(e.target.value)}
-                  sx={{ mb: 2 }}
+                  sx={{
+                    mb: 3,
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: "14px", // Example: Reduced font size
+                      "&:hover": {
+                        // borderColor: "#f57c00",
+                      },
+                      "&.Mui-focused": {
+                        borderColor: "#f57c00",
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      // Target the label
+                      fontSize: "14px", // Smaller label font
+                    },
+                    "& .MuiInputLabel-shrink": {
+                      // Target the shrunk label (when input has focus)
+                      fontSize: "14px", // Even smaller shrunk label
+                    },
+                    "& .MuiInputBase-input": {
+                      fontSize: "14px",
+                    },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      border: "2px solid grey",
+                    },
+                  }}
                 />
-                <TextField
-                  fullWidth
-                  label="Year of Passing"
-                  variant="outlined"
-                  value={passingYear}
-                  onChange={(e) => setPassingYear(e.target.value)}
-                  sx={{ mb: 3 }}
-                />
-                <Button
+                <CustomDatePicker onChange={handleYearChange} />
+                <br />
+                <CustomButton
                   onClick={handleSubmit}
-                  variant="contained"
+                  text={"Continue"}
+                  variant={"contained"}
                   sx={{
-                    backgroundImage:
-                      "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-                    backgroundColor: "#26c579",
-                    color: "#fff",
-                    fontWeight: 600,
-                    borderRadius: 30,
-                    padding: "10px 24px",
-                    textTransform: "none",
-                    transition: "0.3s",
-                    // "&:hover": {
-                    //   backgroundColor: "#1e9c61",
-                    // },
-                    "&:hover": {
-                      backgroundColor: "initial",
-                      backgroundImage:
-                        "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-                    },
+                    backgroundImage: "var(--theme-bg-primary)",
+                    color: "white",
                   }}
-                >
-                  Submit
-                </Button>
-              </>
-            ) : (
-              <>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontFamily: "'Poppins', sans-serif",
-                    fontWeight: 600,
-                    fontSize: "1.4rem",
-                    color: "#222",
-                    textTransform: "capitalize",
-                  }}
-                >
-                  Hello,{" "}
-                  {loading ? (
-                    <Skeleton variant="text" width={120} />
-                  ) : Array.isArray(user) && user.length > 0 ? (
-                    user[0].name
-                  ) : (
-                    "User"
-                  )}
-                </Typography>
-
-                <Typography
-                  sx={{
-                    mt: 1,
-                    fontSize: "1rem",
-                    color: "#555",
-                    fontWeight: 400,
-                    textAlign: "start",
-                  }}
-                >
-                  {loading ? (
-                    <Skeleton variant="text" width="80%" />
-                  ) : Array.isArray(user) && user.length > 0 ? (
-                    user[0].message
-                  ) : (
-                    "Welcome to our platform!"
-                  )}
-                </Typography>
-
-                <Button
-                  onClick={handleModalClose}
-                  variant="contained"
-                  sx={{
-                    mt: 3,
-                    backgroundColor: "#26c579",
-                    color: "#fff",
-                    fontWeight: 600,
-                    borderRadius: 30,
-                    padding: "10px 24px",
-                    textTransform: "none",
-                    transition: "0.3s",
-                    "&:hover": {
-                      backgroundColor: "#1e9c61",
-                    },
-                  }}
-                >
-                  Continue
-                </Button>
+                />
               </>
             )}
           </Box>
         </CustomModal>
+
         <Navbar data={user} />
         {isQuestionsFetched ? (
           <AssessmentCarousel questions={assessmentQuestions} />

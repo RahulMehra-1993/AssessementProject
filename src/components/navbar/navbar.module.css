@@ -1,7 +1,9 @@
 /* navbar.module.css */
 .navbar {
   /* background-color: #cb5f4c !important;  */
-  background-image: linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important;  
+  background-image: linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important;
+  position: sticky;
+  top: 0;  
 }
 
 .toolbar {

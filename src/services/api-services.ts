@@ -1,9 +1,10 @@
 import axios from "axios";
-import { baseUrl } from "./apis";
+import { baseUrl } from "../apis/apis";
 
 // Create an Axios instance with base URL
 const api = axios.create({
   baseURL: baseUrl, // Replace with your API URL
+  // baseURL: testUrl, // Replace with your API URL  
   headers: {
     "Content-Type": "application/json",
   },
@@ -19,6 +20,8 @@ export const getData = async (endpoint: string) => {
     throw error;
   }
 };
+
+
 
 // POST Request
 export const postData = async (endpoint: string, data: any) => {
@@ -63,3 +66,4 @@ export const deleteData = async (endpoint: string) => {
     throw error;
   }
 };
+

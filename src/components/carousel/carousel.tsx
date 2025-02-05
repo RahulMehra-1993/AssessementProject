@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -11,8 +11,6 @@ import {
   FormControl,
   FormLabel,
   LinearProgress,
-  Snackbar,
-  Alert,
   IconButton,
   Grid,
   Breadcrumbs,
@@ -23,13 +21,11 @@ import {
 } from "@mui/material";
 import { CheckCircle, NavigateNext } from "@mui/icons-material";
 import CustomModal from "../modal/modal";
-import { Question } from "../../models/Assessement";
+import { AssessmentProps } from "../../models/carousel/assessment.model";
+import CustomSnackBar from "../../shared/snackbar/snackbar";
+import CustomButton from "../../shared/buttons/custom-button";
 
-interface QuizProps {
-  questions: Question[];
-}
-
-const AssessementCarousel: React.FC<QuizProps> = ({ questions }) => {
+const AssessementCarousel: React.FC<AssessmentProps> = ({ questions }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<(string | null)[]>(
     new Array(questions.length).fill(null)
@@ -56,13 +52,13 @@ const AssessementCarousel: React.FC<QuizProps> = ({ questions }) => {
     setCurrentQuestionIndex(index);
   };
 
-  const handleJumpToNext10 = () => {
-    const nextIndex = Math.min(currentQuestionIndex + 10, questions.length - 1);
+  const handleJumpToNext5 = () => {
+    const nextIndex = Math.min(currentQuestionIndex + 5, questions.length - 1);
     setCurrentQuestionIndex(nextIndex);
   };
 
-  const handleJumpToPrevious10 = () => {
-    const previousIndex = Math.max(currentQuestionIndex - 10, 0); // Ensure index doesn't go below 0
+  const handleJumpToPrevious5 = () => {
+    const previousIndex = Math.max(currentQuestionIndex - 5, 0); // Ensure index doesn't go below 0
     setCurrentQuestionIndex(previousIndex);
   };
 
@@ -70,19 +66,33 @@ const AssessementCarousel: React.FC<QuizProps> = ({ questions }) => {
     const updatedAnswers = [...selectedAnswers];
     updatedAnswers[currentQuestionIndex] = event.target.value;
     setSelectedAnswers(updatedAnswers);
+
+    //set local storage
+    // Store in session storage
+    sessionStorage.setItem("selectedAnswers", JSON.stringify(updatedAnswers));
   };
 
   const handleSubmit = () => {
-    const unanswered = selectedAnswers.filter(
-      (answer) => answer === null
-    ).length;
-    if (unanswered > 0) {
-      setSnackbarMessage(`Please answer all questions. ${unanswered} left.`);
+    // const unanswered = selectedAnswers.filter(
+    //   (answer) => answer === null
+    // ).length;
+    // if (unanswered > 0) {
+    //   setSnackbarMessage(`Please answer all questions. ${unanswered} left.`);
+    //   setShowSnackbar(true);
+    //   return;
+    // }
+    if (answeredQuestions > 0) {
+      setConfirmSubmit(true);
+    } else {
+      const unanswered = selectedAnswers.filter(
+        (answer) => answer === null
+      ).length;
+      setSnackbarMessage(
+        `You haven't started answering yet. Please answer at least one question.`
+      );
       setShowSnackbar(true);
       return;
     }
-
-    setConfirmSubmit(true);
   };
 
   const confirmSubmission = () => {
@@ -92,21 +102,36 @@ const AssessementCarousel: React.FC<QuizProps> = ({ questions }) => {
       selectedAnswer: selectedAnswers[index],
     }));
 
-    console.log("Quiz Results:", assessmentResults);
+    console.log("Assessment Results:", assessmentResults);
     setIsQuizCompleted(true);
     setIsModalOpen(true);
     setSnackbarMessage("Quiz completed successfully!");
     setShowSnackbar(true);
     setConfirmSubmit(false);
+    sessionStorage.removeItem("selectedAnswers");
+    sessionStorage.removeItem("user");
+
+    // Add a delay (e.g., 3 seconds) before reloading the page
+    setTimeout(() => {
+      window.location.reload(); // Reload the window after 3 seconds
+    }, 3000); // 3000 milliseconds = 3 seconds
   };
 
   const answeredQuestions = selectedAnswers.filter(
     (answer) => answer !== null
   ).length;
-  const totalPages = Math.ceil(questions.length / 10);
-  const currentPage = Math.floor(currentQuestionIndex / 10);
+  const totalPages = Math.ceil(questions.length / 5);
+  const currentPage = Math.floor(currentQuestionIndex / 5);
   const hasMoreQuestions = currentPage < totalPages - 1;
   const hasPreviousQuestions = currentPage > 0; // Check if there are previous questions
+
+  // Load saved answers from session storage when component mounts
+  useEffect(() => {
+    const savedAnswers = sessionStorage.getItem("selectedAnswers");
+    if (savedAnswers) {
+      setSelectedAnswers(JSON.parse(savedAnswers));
+    }
+  }, []);
 
   return (
     <Box
@@ -114,7 +139,15 @@ const AssessementCarousel: React.FC<QuizProps> = ({ questions }) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        padding: 2,
+        padding: 1,
+        width: {
+          xs: "100%", // Full width on extra small screens
+          sm: "90%", // Slightly smaller on small screens
+          md: "80%", // Medium screens
+          lg: "70%", // Large screens
+          xl: "60%", // Extra large screens
+        },
+        marginTop: "70px", //navbar height
       }}
     >
       <LinearProgress
@@ -126,104 +159,84 @@ const AssessementCarousel: React.FC<QuizProps> = ({ questions }) => {
           backgroundColor: "#e0e0e0", // Light gray background for the track
           "& .MuiLinearProgress-bar": {
             // Target the progress bar
-            backgroundImage:
-              "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262)", // Your gradient
+            backgroundImage: "var(--theme-bg-danger)", // Your gradient
           },
         }}
       />
+
       <Typography
         variant="body2"
         sx={{ mb: 1, fontWeight: "bold", fontSize: "0.75rem" }}
       >
-        Showing questions {currentPage * 10 + 1} -{" "}
-        {Math.min((currentPage + 1) * 10, questions.length)} of{" "}
+        Showing questions {currentPage * 5 + 1} -{" "}
+        {Math.min((currentPage + 1) * 5, questions.length)} of{" "}
         {questions.length}
       </Typography>
-      <Grid container spacing={1} justifyContent="center" sx={{ mb: 2 }}>
+
+      <Grid
+        container
+        spacing={1}
+        gap={2}
+        justifyContent="center"
+        sx={{ mb: 2 }}
+      >
         <Grid item>
-          <Button
-            variant="contained"
-            onClick={handleJumpToPrevious10}
-            disabled={!hasPreviousQuestions} 
+          <CustomButton
+            onClick={handleJumpToPrevious5}
+            text="<< Previous"
+            isDisabled={!hasPreviousQuestions}
+            variant={"contained"}
             sx={{
-              mr: 2, 
-              borderRadius: 30,
-              backgroundImage:
-                "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-              ...(hasPreviousQuestions
-                ? {}
-                : {
-                    opacity: 0.5,
-                    cursor: "default",
-                    "&:hover": {
-                      backgroundColor: "initial",
-                      backgroundImage:
-                        "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-                    },
-                  }),
+              backgroundImage: "var(--theme-bg-neutral)",
+              color: "white",
             }}
-          >
-            {"<<"} Previous 10
-          </Button>
+          />
         </Grid>
         {questions
-          .slice(currentPage * 10, (currentPage + 1) * 10)
+          .slice(currentPage * 5, (currentPage + 1) * 5)
           .map((_, index) => (
             <Grid item key={index}>
               <IconButton
-                onClick={() => handleJumpToQuestion(currentPage * 10 + index)}
+                onClick={() => handleJumpToQuestion(currentPage * 5 + index)}
                 sx={{
                   width: 30,
                   height: 30,
                   borderRadius: "50%",
-                  backgroundColor: selectedAnswers[currentPage * 10 + index]
+                  backgroundColor: selectedAnswers[currentPage * 5 + index]
                     ? "#26c579"
                     : "#d3d3d3",
                   color: "#fff",
-                  fontSize: "0.75rem",
+                  fontSize: "12px",
                   fontWeight: "bold",
                   "&:hover": { backgroundColor: "#1b8a5a" },
                 }}
               >
-                {currentPage * 10 + index + 1}
+                {currentPage * 5 + index + 1}
               </IconButton>
             </Grid>
           ))}
         <Grid item>
-          <Button
-            variant="contained"
-            onClick={handleJumpToNext10}
-            disabled={!hasMoreQuestions}
+          <CustomButton
+            onClick={handleJumpToNext5}
+            text="Next >>"
+            isDisabled={!hasMoreQuestions}
+            variant={"contained"}
             sx={{
-              ml: 2,
-              borderRadius: 30,
-              backgroundImage:
-                "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-              ...(hasMoreQuestions
-                ? {}
-                : {
-                    opacity: 0.5,
-                    cursor: "default",
-                    "&:hover": {
-                      backgroundColor: "initial",
-                      backgroundImage:
-                        "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-                    },
-                  }),
+              backgroundImage: "var(--theme-bg-neutral)",
+              color: "white",
             }}
-          >
-            Next 10 {">>"}
-          </Button>
+          />
         </Grid>
       </Grid>
+
       <Card
         sx={{
           borderRadius: 10,
           width: "90%",
-          maxWidth: "auto", 
+          maxWidth: "auto",
           minHeight: 250,
-          mb: 3,
-          p: 2,
+          mb: 2,
+          p: 1,
           overflow: "auto",
         }}
       >
@@ -242,7 +255,7 @@ const AssessementCarousel: React.FC<QuizProps> = ({ questions }) => {
             sx={{
               marginBottom: 2,
               fontWeight: "",
-              fontSize: "1rem", 
+              fontSize: "14px",
               lineHeight: "1.2",
             }}
           >
@@ -271,142 +284,119 @@ const AssessementCarousel: React.FC<QuizProps> = ({ questions }) => {
             </RadioGroup>
           </FormControl>
         </CardContent>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mb: 3 }}>
+          {/* Previous Button */}
+          <CustomButton
+            onClick={handlePrevQuestion}
+            text="<"
+            isDisabled={currentQuestionIndex === 0}
+            variant={"contained"}
+            sx={{
+              backgroundImage: "var(--theme-bg-danger)",
+              color: "white",
+            }}
+          />
+
+          {/* Conditional Button - Next or Submit */}
+
+          <CustomButton
+            onClick={handleNextQuestion}
+            text=">"
+            isDisabled={currentQuestionIndex === questions.length - 1}
+            variant={"contained"}
+            sx={{
+              backgroundImage: "var(--theme-bg-danger)",
+            }}
+          />
+
+          <CustomButton
+            variant="contained"
+            onClick={handleSubmit}
+            isDisabled={isQuizCompleted}
+            text="Submit"
+          />
+        </Box>
+        <Typography
+          variant="body2"
+          sx={{ color: "gray", mb: 2, textAlign: "center" }}
+        >
+          {hasMoreQuestions
+            ? "More questions available. Navigate using the buttons or number selector."
+            : "No more questions."}
+        </Typography>
       </Card>
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
-        <Button
-          variant="contained"
-          onClick={handlePrevQuestion}
-          disabled={currentQuestionIndex === 0}
+
+      <CustomSnackBar
+        message={snackbarMessage}
+        show={showSnackbar}
+        close={() => setShowSnackbar(false)}
+      />
+
+      <CustomModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <Box
           sx={{
-            borderRadius: 30,
-            backgroundImage:
-              "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-            ...(currentQuestionIndex !== 0
-              ? {}
-              : {
-                  opacity: 0.5,
-                  cursor: "default",
-                  "&:hover": {
-                    backgroundColor: "initial",
-                    backgroundImage:
-                      "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-                  },
-                }),
+            padding: 4,
+            textAlign: "center",
+            opacity: 0, // Start with opacity 0
+            transform: "scale(0.8)", // Start with a smaller scale
+            animation: "fadeInScale 1s forwards", // Apply the custom animation
+            "@keyframes fadeInScale": {
+              // Define the animation using keyframes
+              "0%": {
+                opacity: 0,
+                transform: "scale(0.8)",
+              },
+              "100%": {
+                opacity: 1,
+                transform: "scale(1)",
+              },
+            },
           }}
         >
-          {"<"} Previous
-        </Button>
-        {currentQuestionIndex === questions.length - 1 ? (
-          <Button
-            sx={{
-              borderRadius: 30,
-            }}
-            variant="contained"
-            disabled={isQuizCompleted}
-            onClick={handleSubmit}
-          >
-            Submit
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            onClick={handleNextQuestion}
-            sx={{
-              borderRadius: 30,
-              backgroundImage:
-                "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-              ...(currentQuestionIndex < questions.length - 1
-                ? {}
-                : {
-                    opacity: 0.5,
-                    cursor: "default",
-                    "&:hover": {
-                      backgroundColor: "initial",
-                      backgroundImage:
-                        "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-                    },
-                  }),
-            }}
-          >
-            Next {">"}
-          </Button>
-        )}
-      </Box>
-      <Typography
-        variant="body2"
-        sx={{ color: "gray", mb: 2, textAlign: "center" }}
-      >
-        {hasMoreQuestions
-          ? "More questions available. Navigate using the buttons or number selector."
-          : "No more questions."}
-      </Typography>
-      <Snackbar
-        open={showSnackbar}
-        autoHideDuration={3000}
-        onClose={() => setShowSnackbar(false)}
-      >
-        <Alert severity="info" sx={{ width: "100%" }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-      <CustomModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <Box sx={{ padding: 4, textAlign: "center" }}>
           <CheckCircle sx={{ fontSize: 50, color: "#26c579" }} />
           <Typography variant="h6" sx={{ marginTop: 2 }}>
             Assessment Completed!
           </Typography>
         </Box>
       </CustomModal>
+
       <Dialog
         open={confirmSubmit}
         onClose={() => setConfirmSubmit(false)}
-        sx={{ borderRadius: 8 }}
+        sx={{
+          "& .MuiDialog-paper": {
+            padding: "12px",
+            borderRadius: "32px",
+          },
+        }}
       >
-        <DialogTitle>Confirm Submission</DialogTitle>
+        <DialogTitle sx={{ textAlign: "center" }}>
+          Confirm Submission
+        </DialogTitle>
         <DialogContent>
+          {" "}
+          {/* Added padding here */}
           <Typography>Are you sure you want to submit your answers?</Typography>
         </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setConfirmSubmit(false)}
-            variant="outlined"
-            sx={{
-              mt: 3,
-              color: "gray", // Modern UI gray for cancel
-              borderColor: "gray", // Gray border
-              fontWeight: 600,
-              borderRadius: 30,
-              padding: "10px 24px",
-              textTransform: "none",
-              transition: "0.3s",
-              "&:hover": {
-                backgroundColor: "rgba(0, 0, 0, 0.04)", // Very light gray hover background
-                borderColor: "gray", // Maintain gray border on hover
-              },
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={confirmSubmission}
-            color="primary"
+        <DialogActions sx={{ display: "flex", justifyContent: "center" }}>
+          <CustomButton
             variant="contained"
-            sx={{
-              mt: 3,
-              backgroundColor: "#26c579",
-              color: "#fff",
-              fontWeight: 600,
-              borderRadius: 30,
-              padding: "10px 24px",
-              textTransform: "none",
-              transition: "0.3s",
-              "&:hover": {
-                backgroundColor: "#1e9c61",
-              },
+            onClick={() => {
+              setConfirmSubmit(false);
             }}
-          >
-            Submit
-          </Button>
+            text="Cancel"
+            sx={{
+              backgroundImage: "var(--theme-bg-neutral)",
+            }}
+          />
+          <CustomButton
+            variant="contained"
+            onClick={confirmSubmission}
+            text="Submit"
+            sx={{
+              backgroundImage: "var(--theme-bg-success)",
+            }}
+          />
         </DialogActions>
       </Dialog>
     </Box>
