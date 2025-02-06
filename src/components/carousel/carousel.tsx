@@ -147,7 +147,6 @@ const AssessementCarousel: React.FC<AssessmentProps> = ({ questions }) => {
           lg: "70%", // Large screens
           xl: "60%", // Extra large screens
         },
-        marginTop: "70px", //navbar height
       }}
     >
       <LinearProgress
@@ -164,19 +163,10 @@ const AssessementCarousel: React.FC<AssessmentProps> = ({ questions }) => {
         }}
       />
 
-      <Typography
-        variant="body2"
-        sx={{ mb: 1, fontWeight: "bold", fontSize: "0.75rem" }}
-      >
-        Showing questions {currentPage * 5 + 1} -{" "}
-        {Math.min((currentPage + 1) * 5, questions.length)} of{" "}
-        {questions.length}
-      </Typography>
-
       <Grid
         container
         spacing={1}
-        gap={2}
+        gap={1}
         justifyContent="center"
         sx={{ mb: 2 }}
       >
@@ -229,6 +219,15 @@ const AssessementCarousel: React.FC<AssessmentProps> = ({ questions }) => {
         </Grid>
       </Grid>
 
+      <Typography
+        variant="body2"
+        sx={{ mb: 1, fontWeight: "bold", fontSize: "0.75rem" }}
+      >
+        Showing questions {currentPage * 5 + 1} -{" "}
+        {Math.min((currentPage + 1) * 5, questions.length)} of{" "}
+        {questions.length}
+      </Typography>
+
       <Card
         sx={{
           borderRadius: 10,
@@ -243,13 +242,27 @@ const AssessementCarousel: React.FC<AssessmentProps> = ({ questions }) => {
         <CardContent>
           <Breadcrumbs
             separator={<NavigateNext fontSize="small" />}
-            sx={{ mb: 1 }}
+            sx={{
+              mb: 2,
+              display: "flex",
+              justifyContent: "flex-start", // Aligns to the end (right)
+              alignItems: "center", // Vertically centers the items
+              fontWeight: 500, // More emphasis on the text
+              color: "text.secondary", // Lighter text color for modern design
+              fontSize: "0.875rem", // Slightly smaller font size for a cleaner look
+            }}
           >
-            <Typography variant="body2">Assessment</Typography>
-            <Typography variant="body2" sx={{ fontSize: ".75rem" }}>
-              Question {currentQuestionIndex + 1} of {questions.length}
+            <Typography sx={{ fontWeight: 600, color: "primary.main" }}>
+              Question
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ fontSize: "12px", color: "text.primary" }}
+            >
+              {currentQuestionIndex + 1} / {questions.length}
             </Typography>
           </Breadcrumbs>
+
           <Typography
             variant="body1"
             sx={{
@@ -262,29 +275,65 @@ const AssessementCarousel: React.FC<AssessmentProps> = ({ questions }) => {
             {questions[currentQuestionIndex].question}
           </Typography>
           <FormControl component="fieldset" sx={{ width: "100%" }}>
-            <FormLabel component="legend" sx={{ fontSize: ".75rem" }}>
+            <FormLabel
+              component="legend"
+              sx={{
+                fontSize: "14px", // Updated to 14px for the header
+                fontWeight: 600,
+                color: "text.primary",
+                mb: 2,
+              }}
+            >
               Choose an answer:
             </FormLabel>
             <RadioGroup
               value={selectedAnswers[currentQuestionIndex] || ""}
               onChange={handleOptionChange}
+              sx={{ display: "flex", flexDirection: "column" }}
             >
               {questions[currentQuestionIndex].options.map((option, index) => (
                 <FormControlLabel
                   key={index}
                   value={option}
-                  control={<Radio />}
+                  control={
+                    <Radio
+                      sx={{
+                        fontSize: "12px", // Font size for the radio button itself
+                        "&.Mui-checked": {
+                          color: "#e16a54", // Selected radio button color
+                          transform: "scale(1.2)", // Slight scale effect when selected
+                          transition: "transform 0.3s ease, color 0.3s ease", // Smooth transition on selection
+                        },
+                        "&:hover": {
+                          backgroundColor: "rgba(245, 124, 32, 0.06)", // Hover effect (light orange)
+                        },
+                        transition: "background-color 0.3s ease",
+                      }}
+                    />
+                  }
                   label={
-                    <Typography sx={{ fontSize: ".75rem" }}>
+                    <Typography
+                      sx={{
+                        fontSize: "12px", // Updated to 12px for the options labels
+                        color: "text.primary",
+                        fontWeight: 500,
+                      }}
+                    >
                       {option}
                     </Typography>
                   }
+                  sx={{
+                    "&.MuiFormControlLabel-root": {
+                      marginBottom: "12px", // Spacing between options
+                      transition: "transform 0.3s ease", // Smooth transition when hovering over the option
+                    },
+                  }}
                 />
               ))}
             </RadioGroup>
           </FormControl>
         </CardContent>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mb: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 3 }}>
           {/* Previous Button */}
           <CustomButton
             onClick={handlePrevQuestion}
@@ -374,10 +423,37 @@ const AssessementCarousel: React.FC<AssessmentProps> = ({ questions }) => {
           Confirm Submission
         </DialogTitle>
         <DialogContent>
-          {" "}
           {/* Added padding here */}
-          <Typography>Are you sure you want to submit your answers?</Typography>
+          <Typography
+            variant="h6"
+            sx={{ fontSize: "18px", fontWeight: "bold", mb: 2 }}
+          >
+            Are you sure you want to submit your answers?
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{ fontSize: "14px", color: "text.secondary", mb: 2 }}
+          >
+            You have answered {answeredQuestions} of {questions.length}{" "}
+            questions.
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: "14px",
+              fontStyle: "italic",
+              color:
+                answeredQuestions === questions.length
+                  ? "success.main"
+                  : "warning.main",
+            }}
+          >
+            {answeredQuestions === questions.length
+              ? "All questions answered!"
+              : "You still have unanswered questions."}
+          </Typography>
         </DialogContent>
+
         <DialogActions sx={{ display: "flex", justifyContent: "center" }}>
           <CustomButton
             variant="contained"

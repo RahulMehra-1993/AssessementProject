@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -13,22 +13,23 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import styles from "./navbar.module.css";
 import UserSkelton from "../../shared/skeltons/user-skelton";
 import { User } from "../../models/user/user.model";
+import { StoreContext } from "../../store/state-context";
+import { Update } from "@mui/icons-material";
 
 interface NavbarProps {
   data: User[]; // Accepts a single object instead of an array
 }
 
 const Navbar: React.FC<NavbarProps> = ({ data }) => {
-  const [user, setUser] = useState<User[] | null | undefined>([]);
+  // context
+  const context = useContext(StoreContext);
+  if (!context)
+    throw new Error("StoreContext must be used within a StoreProvider");
+  const { state, dispatch } = context;
+
 
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-
-  useEffect(() => {
-    if (data.length > 0) {
-      setUser(data); // Directly set data as user
-    }
-  }, [data]);
 
   return (
     <AppBar className={styles.navbar} sx={{ boxShadow: 4 }}>
@@ -71,13 +72,13 @@ const Navbar: React.FC<NavbarProps> = ({ data }) => {
           />
 
           {/* User Email / Guest */}
-          {user && user[0]?.email ? (
+          {state.user && state.user.length > 0 ? (
             <Typography
               variant="body1"
               className={styles.userEmail}
               sx={{ display: "flex", alignItems: "center" }}
             >
-              {user[0]?.email}
+              {state.user[0].name}
             </Typography>
           ) : (
             <UserSkelton />

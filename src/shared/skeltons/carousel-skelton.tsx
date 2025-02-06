@@ -8,8 +8,8 @@ const CarouselSKeleton = () => {
         flexDirection: "column",
         alignItems: "center",
         padding: 2,
-        minWidth:600,
-        width: 'max-content', // Use max-content"
+        minWidth: 600,
+        width: "max-content", // Use max-content"
       }}
     >
       {/* Skeleton for LinearProgress (progress bar) */}
@@ -41,8 +41,6 @@ const CarouselSKeleton = () => {
         ))}
       </Box>
 
-      
-
       {/* Skeleton for Card containing the question */}
       <Card
         sx={{
@@ -52,7 +50,7 @@ const CarouselSKeleton = () => {
           minHeight: 250,
           marginBottom: 3,
           padding: 2,
-          opacity:.8
+          opacity: 0.8,
         }}
       >
         <CardContent>
@@ -86,31 +84,29 @@ const CarouselSKeleton = () => {
           <Skeleton variant="text" width="60%" height={30} />
         </CardContent>
         {/* Skeleton for Navigation buttons */}
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 5, mb: 3 }}>
-        <Skeleton
-          variant="rectangular"
-          width={100}
-          height={40}
-          sx={{ borderRadius: 25 }}
-        />
-        <Skeleton
-          variant="rectangular"
-          width={100}
-          height={40}
-          sx={{ borderRadius: 25 }}
-        />
-      </Box>
+        <Box sx={{ display: "flex", justifyContent: "center", gap: 5, mb: 3 }}>
+          <Skeleton
+            variant="rectangular"
+            width={100}
+            height={40}
+            sx={{ borderRadius: 25 }}
+          />
+          <Skeleton
+            variant="rectangular"
+            width={100}
+            height={40}
+            sx={{ borderRadius: 25 }}
+          />
+        </Box>
 
-      {/* Skeleton for Snackbar */}
-      <Skeleton
-        variant="rectangular"
-        width="100%"
-        height={50}
-        sx={{ marginTop: 2 }}
-      />
+        {/* Skeleton for Snackbar */}
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height={50}
+          sx={{ marginTop: 2 }}
+        />
       </Card>
-
-      
     </Box>
   );
 };

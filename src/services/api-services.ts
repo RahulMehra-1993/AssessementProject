@@ -21,8 +21,6 @@ export const getData = async (endpoint: string) => {
   }
 };
 
-
-
 // POST Request
 export const postData = async (endpoint: string, data: any) => {
   try {

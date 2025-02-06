@@ -108,7 +108,7 @@ button:hover {
 
 button:focus,
 button:focus-visible {
-  outline: 4px solid #ff5733; /* Orange outline for accessibility */
+  outline: 2px solid #ffffff; /* Orange outline for accessibility */
 }
 
 @media (prefers-color-scheme: light) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import styles from "./layout.module.css";
 import Navbar from "../../components/navbar/navbar";
 import CustomModal from "../../components/modal/modal";
@@ -14,12 +14,17 @@ import CustomButton from "../../shared/buttons/custom-button";
 import { Dayjs } from "dayjs";
 import { User } from "../../models/user/user.model";
 import { QUESTIONS, USER } from "../../constants/api-constants/apis.enum";
+import { StoreContext } from "../../store/state-context";
 
 interface NavbarProps {
   data: User[]; // Accepts an array of users
 }
 
 const Layout: React.FC<NavbarProps> = () => {
+  // use context-srore
+  const context = useContext(StoreContext);
+  const { state, dispatch } = context;
+
   const [user, setUser] = useState<User[]>([]);
   const [assessmentQuestions, setAssessmentQuestions] = useState<Question[]>(
     []
@@ -46,10 +51,18 @@ const Layout: React.FC<NavbarProps> = () => {
     }
   }, []);
 
+  // Update global state only when user is fetched
+  useEffect(() => {
+    if (user.length > 0) {
+      dispatch({ type: "SET_USER", payload: user });
+    }
+    console.log(state);
+  }, [user]); // Runs only when user is updated
+
   const handleModalClose = () => {
     if (!showForm) {
       setShowForm(true); // Show form after the welcome message is closed
-    } 
+    }
   };
 
   const fetchAssessmentQuestions = () => {
@@ -121,14 +134,14 @@ const Layout: React.FC<NavbarProps> = () => {
                     fontFamily: "'Poppins', sans-serif",
                     fontWeight: 600,
                     fontSize: "18px",
-                    color: "#222",
                     textTransform: "capitalize",
                     mb: 3, // Increased margin bottom
                     textAlign: "center", // Center the title
                   }}
                 >
-                  Enter Your Details
+                  Enter Your Details  
                 </Typography>
+
                 <TextField
                   autoComplete="off"
                   fullWidth
