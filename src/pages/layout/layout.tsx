@@ -2,27 +2,25 @@ import { useContext, useEffect, useState } from "react";
 import styles from "./layout.module.css";
 import Navbar from "../../components/navbar/navbar";
 import CustomModal from "../../components/modal/modal";
-import { Typography, Box, TextField } from "@mui/material";
+import { Typography, Box, TextField, Container } from "@mui/material";
 import { getData } from "../../services/api-services";
-import { getData as getNgData } from "../../services/ngrok-api-service";
 import AssessmentCarousel from "../../components/carousel/carousel";
 import { Question } from "../../models/carousel/assessment.model";
-import CarouselSKeleton from "../../shared/skeltons/carousel-skelton";
-import UserSkelton from "../../shared/skeltons/user-skelton";
+import CarouselSkeleton from "../../shared/skeltons/carousel-skelton";
 import CustomDatePicker from "../../shared/date/date-picker";
 import CustomButton from "../../shared/buttons/custom-button";
 import { Dayjs } from "dayjs";
 import { User } from "../../models/user/user.model";
 import { QUESTIONS, USER } from "../../constants/api-constants/apis.enum";
 import { StoreContext } from "../../store/state-context";
+import { ActionType as actions } from "../../constants/actions/action.enum";
+import UserSkelton from "../../shared/skeltons/user-skelton";
 
-interface NavbarProps {
-  data: User[]; // Accepts an array of users
-}
-
-const Layout: React.FC<NavbarProps> = () => {
-  // use context-srore
+const Layout: React.FC = () => {
   const context = useContext(StoreContext);
+  if (!context) {
+    throw new Error("StoreContext must be used within a StoreProvider");
+  }
   const { state, dispatch } = context;
 
   const [user, setUser] = useState<User[]>([]);
@@ -30,67 +28,76 @@ const Layout: React.FC<NavbarProps> = () => {
     []
   );
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [isQuestionsFetched, setIsQuestionsFetched] = useState<boolean>(false);
-  const [showForm, setShowForm] = useState<boolean>(false); // Show form after welcome message
+  const [showForm, setShowForm] = useState<boolean>(false);
   const [collegeName, setCollegeName] = useState<string>("");
   const [passingYear, setPassingYear] = useState<Dayjs | null>(null);
 
+  // Fetch user data from session storage or API
   useEffect(() => {
     const storedUser = sessionStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setLoading(false);
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
       setIsModalOpen(false);
       fetchAssessmentQuestions();
     } else {
+      dispatch({ type: actions.SET_USER_LOADING, payload: true });
       getData(USER).then((data) => {
         setUser(data);
-        setLoading(false);
+        sessionStorage.setItem("user", JSON.stringify(data));
+        setIsModalOpen(true);
+        // dispatch({type: actions.SET_USER_LOADING, payload: false});
       });
+      // Delay hiding the loader to ensure it is visible
+      setTimeout(() => {
+        dispatch({ type: actions.SET_USER_LOADING, payload: false });
+      }, 2000); // Show loader for at least 1 second
     }
   }, []);
 
-  // Update global state only when user is fetched
+  // Fetch assessment questions
+  const fetchAssessmentQuestions = () => {
+    dispatch({ type: actions.SET_QUESTIONS_LOADING, payload: true });
+
+    getData(QUESTIONS).then((data) => {
+      if (data) {
+        setAssessmentQuestions(data);
+        dispatch({ type: actions.SET_QUESTIONS, payload: data });
+        setIsModalOpen(false); // Close modal only after fetching
+      }
+
+      // Delay hiding the loader to ensure it is visible
+      setTimeout(() => {
+        dispatch({ type: actions.SET_QUESTIONS_LOADING, payload: false });
+      }, 2000); // Show loader for at least 1 second
+    });
+  };
+
+  // Update global state when user and questions are fetched
   useEffect(() => {
     if (user.length > 0) {
-      dispatch({ type: "SET_USER", payload: user });
+      dispatch({ type: actions.SET_USER, payload: user });
     }
-    console.log(state);
-  }, [user]); // Runs only when user is updated
+  }, [user, dispatch]);
 
   const handleModalClose = () => {
     if (!showForm) {
-      setShowForm(true); // Show form after the welcome message is closed
+      setShowForm(true); // Show form when closing welcome message
     }
-  };
-
-  const fetchAssessmentQuestions = () => {
-    setLoading(true);
-    getData(QUESTIONS).then((data) => {
-      setAssessmentQuestions(data);
-      setIsQuestionsFetched(true);
-      setLoading(false);
-    });
   };
 
   const handleSubmit = () => {
     if (collegeName.trim() && passingYear) {
       sessionStorage.setItem("user", JSON.stringify(user));
-      setShowForm(false); // Hide form after submission
-      fetchAssessmentQuestions(); // Fetch the questions after form completion
-      setIsModalOpen(false);
+      fetchAssessmentQuestions(); // Fetch assessment questions after submitting form
     }
-  };
-
-  const handleYearChange = (newYear: Dayjs | null) => {
-    setPassingYear(newYear);
   };
 
   return (
     <div className={styles.appContainer}>
       <div className={styles.blurOverlay}></div>
       <div className={styles.content}>
+        {/* Modal for Welcome Message & Form */}
         <CustomModal isOpen={isModalOpen} onClose={handleModalClose}>
           <Box
             sx={{
@@ -102,31 +109,38 @@ const Layout: React.FC<NavbarProps> = () => {
             }}
           >
             {!showForm ? (
-              <>
-                <Typography
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: "14px",
+              <Container>
+                <Box>
+                  {!state.userLoading ? (
+                    state.user && state.user.length > 0 ? (
+                      <Typography variant="h5">
+                        {state.user[0].email}
+                      </Typography>
+                    ) : (
+                      <Typography variant="h5">No user found</Typography>
+                    )
+                  ) : (
+                    <UserSkelton />
+                  )}
 
-                    textTransform: "capitalize",
-                    mb: 3,
-                    textAlign: "center",
-                  }}
-                >
-                  {user ? user[0]?.email : "No user found"}
+                  <Typography variant="body1">
+                    Welcome! Please fill out your details to proceed.
+                  </Typography>
                   <br />
-                  Welcome! Please fill out your details to proceed.
-                </Typography>
-                <CustomButton
-                  onClick={handleModalClose}
-                  text="Continue"
-                  variant={"contained"}
-                  sx={{
-                    backgroundImage: "var(--theme-bg-primary)",
-                    color: "white",
-                  }}
-                />
-              </>
+                  <CustomButton
+                    onClick={handleModalClose}
+                    isDisabled={
+                      state.user && state.user.length > 0 ? false : true
+                    }
+                    text="Continue"
+                    variant="contained"
+                    sx={{
+                      backgroundImage: "var(--theme-bg-primary)",
+                      color: "white",
+                    }}
+                  />
+                </Box>
+              </Container>
             ) : (
               <>
                 <Typography
@@ -135,11 +149,11 @@ const Layout: React.FC<NavbarProps> = () => {
                     fontWeight: 600,
                     fontSize: "18px",
                     textTransform: "capitalize",
-                    mb: 3, // Increased margin bottom
-                    textAlign: "center", // Center the title
+                    mb: 3,
+                    textAlign: "center",
                   }}
                 >
-                  Enter Your Details  
+                  Enter Your Details
                 </Typography>
 
                 <TextField
@@ -152,21 +166,13 @@ const Layout: React.FC<NavbarProps> = () => {
                   sx={{
                     mb: 3,
                     "& .MuiOutlinedInput-root": {
-                      fontSize: "14px", // Example: Reduced font size
-                      "&:hover": {
-                        // borderColor: "#f57c00",
-                      },
+                      fontSize: "14px",
                       "&.Mui-focused": {
                         borderColor: "#f57c00",
                       },
                     },
                     "& .MuiInputLabel-root": {
-                      // Target the label
-                      fontSize: "14px", // Smaller label font
-                    },
-                    "& .MuiInputLabel-shrink": {
-                      // Target the shrunk label (when input has focus)
-                      fontSize: "14px", // Even smaller shrunk label
+                      fontSize: "14px",
                     },
                     "& .MuiInputBase-input": {
                       fontSize: "14px",
@@ -176,12 +182,12 @@ const Layout: React.FC<NavbarProps> = () => {
                     },
                   }}
                 />
-                <CustomDatePicker onChange={handleYearChange} />
+                <CustomDatePicker onChange={setPassingYear} />
                 <br />
                 <CustomButton
                   onClick={handleSubmit}
-                  text={"Continue"}
-                  variant={"contained"}
+                  text="Continue"
+                  variant="contained"
                   sx={{
                     backgroundImage: "var(--theme-bg-primary)",
                     color: "white",
@@ -191,12 +197,14 @@ const Layout: React.FC<NavbarProps> = () => {
             )}
           </Box>
         </CustomModal>
+        {/* Navbar display */}
+        <Navbar />
 
-        <Navbar data={user} />
-        {isQuestionsFetched ? (
-          <AssessmentCarousel questions={assessmentQuestions} />
+        {/* Show Skeleton if questions are loading, otherwise show Carousel */}
+        {state.questionsLoading ? (
+          <CarouselSkeleton />
         ) : (
-          <CarouselSKeleton />
+          <AssessmentCarousel questions={assessmentQuestions} />
         )}
       </div>
     </div>

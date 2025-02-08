@@ -5,7 +5,3 @@ export interface Question {
   correct_answer: string;
 }
 
-
-export interface AssessmentProps {
-  questions: Question[];
-}

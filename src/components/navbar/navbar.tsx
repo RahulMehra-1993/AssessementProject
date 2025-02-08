@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext} from "react";
 import {
   AppBar,
   Toolbar,
   Typography,
-  Avatar,
+
   Box,
   Divider,
   useTheme,
@@ -12,27 +12,33 @@ import {
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import styles from "./navbar.module.css";
 import UserSkelton from "../../shared/skeltons/user-skelton";
-import { User } from "../../models/user/user.model";
 import { StoreContext } from "../../store/state-context";
-import { Update } from "@mui/icons-material";
 
-interface NavbarProps {
-  data: User[]; // Accepts a single object instead of an array
-}
 
-const Navbar: React.FC<NavbarProps> = ({ data }) => {
+
+const Navbar = () => {
   // context
   const context = useContext(StoreContext);
   if (!context)
     throw new Error("StoreContext must be used within a StoreProvider");
   const { state, dispatch } = context;
 
-
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <AppBar className={styles.navbar} sx={{ boxShadow: 4 }}>
+    <AppBar
+      className={styles.navbar}
+      sx={{
+        boxShadow: 4,
+        "& .MuiToolbar-root": {
+          fontWeight: "bold",
+          fontSize: "12px",
+          padding: "",
+          minHeight: "48px",
+        },
+      }}
+    >
       <Toolbar
         sx={{
           display: "flex",
@@ -42,7 +48,11 @@ const Navbar: React.FC<NavbarProps> = ({ data }) => {
       >
         {/* Logo & Project Name */}
         <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
-          <img src="assets/optimus.png" alt="Logo" className={styles.logo} />
+          <img
+            src="/public/assets/optimus.png"
+            alt="Logo"
+            className={styles.logo}
+          />
           {!isSmallScreen && (
             <>
               <Divider
@@ -50,20 +60,14 @@ const Navbar: React.FC<NavbarProps> = ({ data }) => {
                 flexItem
                 sx={{ backgroundColor: "white", ml: 1, mr: 1 }}
               />
-              <Typography variant="h6" className={styles.projectName}>
-                Assessment
-              </Typography>
+              <Typography className={styles.projectName}>Assessment</Typography>
             </>
           )}
         </Box>
 
         {/* User Section */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <AccountCircleIcon
-            className={styles.userIcon}
-            sx={{ fontSize: 40 }}
-          />
-
+          <AccountCircleIcon className={styles.userIcon} />
           {/* Divider */}
           <Divider
             orientation="vertical"
@@ -72,16 +76,15 @@ const Navbar: React.FC<NavbarProps> = ({ data }) => {
           />
 
           {/* User Email / Guest */}
-          {state.user && state.user.length > 0 ? (
+          {state.userLoading ? (
+            <UserSkelton />
+          ) : (
             <Typography
-              variant="body1"
               className={styles.userEmail}
               sx={{ display: "flex", alignItems: "center" }}
             >
-              {state.user[0].name}
+              {state.user ? state.user[0]?.name : "User not found"}
             </Typography>
-          ) : (
-            <UserSkelton />
           )}
         </Box>
       </Toolbar>

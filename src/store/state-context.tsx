@@ -1,10 +1,8 @@
 import React, { createContext, useReducer, ReactNode } from "react";
+import { ActionType } from "../constants/actions/action.enum";
+import { User } from "../models/user/user.model";
+import { Question } from "../models/carousel/assessment.model";
 
-// Define User Type
-interface User {
-  name: string;
-  age: number;
-}
 
 // Define State Type
 interface State {
@@ -12,11 +10,14 @@ interface State {
   userError: string | null;
   userLoading: boolean;
 
-  questions: string[];
+  questions: Question[];
   questionsError: string | null;
   questionsLoading: boolean;
+  currentQuestionIndex: number;
 
   isModalOpen: boolean;
+
+  complete: boolean;
 }
 
 // Initial State
@@ -28,50 +29,48 @@ const initialState: State = {
   questions: [],
   questionsError: null,
   questionsLoading: false,
+  currentQuestionIndex: 0,
 
   isModalOpen: false,
+
+  complete: false,
 };
 
-// Define Action Types - Using const enums for better type safety
-const enum ActionType {
-  SET_USER = "SET_USER",
-  SET_USER_ERROR = "SET_USER_ERROR",
-  SET_USER_LOADING = "SET_USER_LOADING",
-  SET_QUESTIONS = "SET_QUESTIONS",
-  SET_QUESTIONS_ERROR = "SET_QUESTIONS_ERROR",
-  SET_QUESTIONS_LOADING = "SET_QUESTIONS_LOADING",
-  TOGGLE_MODAL = "TOGGLE_MODAL",
-}
 
 type Action =
   | { type: ActionType.SET_USER; payload: User[] }
   | { type: ActionType.SET_USER_ERROR; payload: string }
   | { type: ActionType.SET_USER_LOADING; payload: boolean }
-  | { type: ActionType.SET_QUESTIONS; payload: string[] }
+  | { type: ActionType.SET_QUESTIONS; payload: Question[] }
+  | { type: ActionType.SET_CURRENT_QUESTION_INDEX; payload: number }
   | { type: ActionType.SET_QUESTIONS_ERROR; payload: string }
   | { type: ActionType.SET_QUESTIONS_LOADING; payload: boolean }
-  | { type: ActionType.TOGGLE_MODAL };
+  | { type: ActionType.TOGGLE_MODAL }
+  | { type: ActionType.SET_COMPLETE; payload: boolean };
 
 
 // Reducer Function
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case ActionType.SET_USER:
-      return { ...state, user: [...state.user , ...action.payload], userError: null };
+      return { ...state, user: [...action.payload], userError: null };
     case ActionType.SET_USER_ERROR:
       return { ...state, userError: action.payload };
     case ActionType.SET_USER_LOADING:
       return { ...state, userLoading: action.payload };
 
     case ActionType.SET_QUESTIONS:
-      return { ...state, questions: action.payload, questionsError: null };
+      return { ...state, questions: [...action.payload], questionsError: null };
     case ActionType.SET_QUESTIONS_ERROR:
       return { ...state, questionsError: action.payload };
     case ActionType.SET_QUESTIONS_LOADING:
       return { ...state, questionsLoading: action.payload };
-
+      case ActionType.SET_CURRENT_QUESTION_INDEX:
+      return { ...state, currentQuestionIndex: action.payload };   
     case ActionType.TOGGLE_MODAL:
       return { ...state, isModalOpen: !state.isModalOpen };
+      case ActionType.SET_COMPLETE:
+      return { ...state, complete: action.payload };
 
     default:
       return state;

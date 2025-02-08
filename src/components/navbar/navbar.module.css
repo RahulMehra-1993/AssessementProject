@@ -1,9 +1,14 @@
 /* navbar.module.css */
 .navbar {
   /* background-color: #cb5f4c !important;  */
-  background-image: linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important;
-  position: sticky;
-  top: 0;  
+  background-image: linear-gradient(
+    to left,
+    #bb462b,
+    #bc423a,
+    #bb4049,
+    #b84056,
+    #b34262
+  ) !important;
 }
 
 .toolbar {
@@ -13,8 +18,6 @@
 }
 
 .logo {
-  width: 40px; /* Logo size */
-  height: auto;
   background-color: rgb(227, 212, 209);
   border-radius: 20%;
   padding: 5px;
@@ -22,7 +25,6 @@
 
 .projectName {
   font-weight: 500;
-  color: white;
 }
 
 .userSection {
@@ -32,8 +34,10 @@
 }
 
 .userAvatar,
-.userIcon {
-  
+.userIcon,
+.logo {
+  width: 20px;
+  aspect-ratio: 1/1;
 }
 
 .userEmail {
@@ -41,6 +45,4 @@
 }
 
 .defaultUser {
-  font-size: 0.9rem;
-  color: gray;
 }

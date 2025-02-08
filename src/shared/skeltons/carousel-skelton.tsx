@@ -1,114 +1,56 @@
-import { Box, Card, CardContent, Skeleton } from "@mui/material";
+import { Box, Card, Skeleton, Typography, Breadcrumbs } from "@mui/material";
 
-const CarouselSKeleton = () => {
+const QuestionSkeleton = () => {
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        padding: 2,
-        minWidth: 600,
-        width: "max-content", // Use max-content"
+        padding: 1,
+        marginTop: { lg: "80px" },
+        width: { xs: "100%", sm: "90%", md: "80%", lg: "70%", xl: "60%" },
       }}
     >
-      {/* Skeleton for LinearProgress (progress bar) */}
-      <Skeleton
-        variant="rectangular"
-        width="90%"
-        height={10}
-        sx={{ marginBottom: 2 }}
-      />
-      <Skeleton
-        variant="text"
-        width="40%"
-        height={20}
-        sx={{ marginBottom: 2 }}
-      />
-
-      {/* Skeleton for Question navigation buttons */}
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 2 }}>
-        {[...Array(5)].map((_, index) => (
-          <Skeleton
-            key={index}
-            variant="circular"
-            width={35}
-            height={35}
-            sx={{
-              backgroundColor: "#d3d3d3",
-            }}
-          />
-        ))}
-      </Box>
-
-      {/* Skeleton for Card containing the question */}
       <Card
         sx={{
           borderRadius: 10,
           width: "90%",
-          maxWidth: 600,
           minHeight: 250,
-          marginBottom: 3,
-          padding: 2,
-          opacity: 0.8,
+          mb: 2,
+          p: 1,
+          overflow: "hidden",
         }}
       >
-        <CardContent>
-          {/* Skeleton for Question text */}
-          <Skeleton
-            variant="text"
-            width="80%"
-            height={30}
-            sx={{ marginBottom: 2 }}
-          />
+        <Skeleton variant="rectangular"  height={10} sx={{ mb: 2 }} />
 
-          {/* Skeleton for Radio options */}
+        <Breadcrumbs sx={{ mb: 2 }}>
+          <Skeleton variant="text" width={80} height={20} />
+          <Skeleton variant="text" width={50} height={20} />
+        </Breadcrumbs>
+
+        <Typography variant="body1" sx={{ mb: 2 }}>
+          <Skeleton variant="text" width="80%" height={20} />
+        </Typography>
+
+        {[...Array(4)].map((_, index) => (
           <Skeleton
-            variant="text"
-            width="60%"
-            height={30}
-            sx={{ marginBottom: 1 }}
-          />
-          <Skeleton
-            variant="text"
-            width="60%"
-            height={30}
-            sx={{ marginBottom: 1 }}
-          />
-          <Skeleton
-            variant="text"
-            width="60%"
-            height={30}
-            sx={{ marginBottom: 1 }}
-          />
-          <Skeleton variant="text" width="60%" height={30} />
-        </CardContent>
-        {/* Skeleton for Navigation buttons */}
-        <Box sx={{ display: "flex", justifyContent: "center", gap: 5, mb: 3 }}>
-          <Skeleton
+            key={index}
             variant="rectangular"
-            width={100}
+            width="100%"
             height={40}
-            sx={{ borderRadius: 25 }}
+            sx={{ mb: 2, borderRadius: "8px" }}
           />
-          <Skeleton
-            variant="rectangular"
-            width={100}
-            height={40}
-            sx={{ borderRadius: 25 }}
-          />
+        ))}
+
+        <Box display="flex" alignItems="center" justifyContent="center">
+          <Skeleton variant="circular" width={30} height={30} sx={{ mx: 1 }} />
+          <Skeleton variant="circular" width={30} height={30} sx={{ mx: 1 }} />
+          <Skeleton variant="circular" width={30} height={30} sx={{ mx: 1 }} />
         </Box>
-
-        {/* Skeleton for Snackbar */}
-        <Skeleton
-          variant="rectangular"
-          width="100%"
-          height={50}
-          sx={{ marginTop: 2 }}
-        />
       </Card>
     </Box>
   );
 };
 
-export default CarouselSKeleton;
+export default QuestionSkeleton;
