@@ -1,67 +1,95 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import styles from "./layout.module.css";
 import Navbar from "../../components/navbar/navbar";
 import CustomModal from "../../components/modal/modal";
-import { Typography, Skeleton, Box, Button, TextField } from "@mui/material";
-import { getData } from "../../apis/apiService";
+import { Typography, Box, TextField, Container } from "@mui/material";
+import { getData } from "../../services/api-services";
 import AssessmentCarousel from "../../components/carousel/carousel";
-import { Question } from "../../models/Assessement";
-import CarouselSKeleton from "../../shared/skeltons/carouselSkelton";
+import { Question } from "../../models/carousel/assessment.model";
+import CarouselSkeleton from "../../shared/skeltons/carousel-skelton";
+import CustomDatePicker from "../../shared/date/date-picker";
+import CustomButton from "../../shared/buttons/custom-button";
+import { Dayjs } from "dayjs";
+import { User } from "../../models/user/user.model";
+import { QUESTIONS, USER } from "../../constants/api-constants/apis.enum";
+import { StoreContext } from "../../store/state-context";
+import { ActionType as actions } from "../../constants/actions/action.enum";
+import UserSkelton from "../../shared/skeltons/user-skelton";
 
-const Layout = () => {
-  const [user, setUser] = useState<
-    {
-      createdAt: string;
-      name: string;
-      email: string;
-      avatar: string;
-      id: string;
-      message: string;
-    }[]
-  >([]);
+const Layout: React.FC = () => {
+  const context = useContext(StoreContext);
+  if (!context) {
+    throw new Error("StoreContext must be used within a StoreProvider");
+  }
+  const { state, dispatch } = context;
 
+  const [user, setUser] = useState<User[]>([]);
   const [assessmentQuestions, setAssessmentQuestions] = useState<Question[]>(
     []
   );
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [isQuestionsFetched, setIsQuestionsFetched] = useState<boolean>(false);
-  const [showForm, setShowForm] = useState<boolean>(true); // Track form visibility
+  const [showForm, setShowForm] = useState<boolean>(false);
   const [collegeName, setCollegeName] = useState<string>("");
-  const [passingYear, setPassingYear] = useState<string>("");
+  const [passingYear, setPassingYear] = useState<Dayjs | null>(null);
 
+  // Fetch user data from session storage or API
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    console.log("API URL:", apiUrl);
-    getData("/useremail").then((data) => {
-      if (data.length > 0) {
+    const storedUser = sessionStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      setIsModalOpen(false);
+      fetchAssessmentQuestions();
+    } else {
+      dispatch({ type: actions.SET_USER_LOADING, payload: true });
+      getData(USER).then((data) => {
         setUser(data);
-      }
-      setLoading(false);
-    });
+        sessionStorage.setItem("user", JSON.stringify(data));
+        setIsModalOpen(true);
+        // dispatch({type: actions.SET_USER_LOADING, payload: false});
+      });
+      // Delay hiding the loader to ensure it is visible
+      setTimeout(() => {
+        dispatch({ type: actions.SET_USER_LOADING, payload: false });
+      }, 2000); // Show loader for at least 1 second
+    }
   }, []);
 
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    fetchAssessmentQuestions();
+  // Fetch assessment questions
+  const fetchAssessmentQuestions = () => {
+    dispatch({ type: actions.SET_QUESTIONS_LOADING, payload: true });
+
+    getData(QUESTIONS).then((data) => {
+      if (data) {
+        setAssessmentQuestions(data);
+        dispatch({ type: actions.SET_QUESTIONS, payload: data });
+        setIsModalOpen(false); // Close modal only after fetching
+      }
+
+      // Delay hiding the loader to ensure it is visible
+      setTimeout(() => {
+        dispatch({ type: actions.SET_QUESTIONS_LOADING, payload: false });
+      }, 2000); // Show loader for at least 1 second
+    });
   };
 
-  const fetchAssessmentQuestions = () => {
-    setLoading(true);
-    setTimeout(() => {
-      getData("/assessementquestion").then((data) => {
-        if (data.length > 0) {
-          setAssessmentQuestions(data);
-        }
-        setIsQuestionsFetched(true);
-        setLoading(false);
-      });
-    }, 5000);
+  // Update global state when user and questions are fetched
+  useEffect(() => {
+    if (user.length > 0) {
+      dispatch({ type: actions.SET_USER, payload: user });
+    }
+  }, [user, dispatch]);
+
+  const handleModalClose = () => {
+    if (!showForm) {
+      setShowForm(true); // Show form when closing welcome message
+    }
   };
 
   const handleSubmit = () => {
-    if (collegeName.trim() && passingYear.trim()) {
-      setShowForm(false); // Hide form and show message
+    if (collegeName.trim() && passingYear) {
+      sessionStorage.setItem("user", JSON.stringify(user));
+      fetchAssessmentQuestions(); // Fetch assessment questions after submitting form
     }
   };
 
@@ -69,6 +97,7 @@ const Layout = () => {
     <div className={styles.appContainer}>
       <div className={styles.blurOverlay}></div>
       <div className={styles.content}>
+        {/* Modal for Welcome Message & Form */}
         <CustomModal isOpen={isModalOpen} onClose={handleModalClose}>
           <Box
             sx={{
@@ -79,131 +108,103 @@ const Layout = () => {
               mx: "auto",
             }}
           >
-            {showForm ? (
+            {!showForm ? (
+              <Container>
+                <Box>
+                  {!state.userLoading ? (
+                    state.user && state.user.length > 0 ? (
+                      <Typography variant="h5">
+                        {state.user[0].email}
+                      </Typography>
+                    ) : (
+                      <Typography variant="h5">No user found</Typography>
+                    )
+                  ) : (
+                    <UserSkelton />
+                  )}
+
+                  <Typography variant="body1">
+                    Welcome! Please fill out your details to proceed.
+                  </Typography>
+                  <br />
+                  <CustomButton
+                    onClick={handleModalClose}
+                    isDisabled={
+                      state.user && state.user.length > 0 ? false : true
+                    }
+                    text="Continue"
+                    variant="contained"
+                    sx={{
+                      backgroundImage: "var(--theme-bg-primary)",
+                      color: "white",
+                    }}
+                  />
+                </Box>
+              </Container>
+            ) : (
               <>
                 <Typography
-                  variant="h6"
                   sx={{
                     fontFamily: "'Poppins', sans-serif",
                     fontWeight: 600,
-                    fontSize: "1.4rem",
-                    color: "#222",
+                    fontSize: "18px",
                     textTransform: "capitalize",
-                    mb: 2,
+                    mb: 3,
+                    textAlign: "center",
                   }}
                 >
                   Enter Your Details
                 </Typography>
+
                 <TextField
+                  autoComplete="off"
                   fullWidth
                   label="College Name"
                   variant="outlined"
                   value={collegeName}
                   onChange={(e) => setCollegeName(e.target.value)}
-                  sx={{ mb: 2 }}
+                  sx={{
+                    mb: 3,
+                    "& .MuiOutlinedInput-root": {
+                      fontSize: "14px",
+                      "&.Mui-focused": {
+                        borderColor: "#f57c00",
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      fontSize: "14px",
+                    },
+                    "& .MuiInputBase-input": {
+                      fontSize: "14px",
+                    },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      border: "2px solid grey",
+                    },
+                  }}
                 />
-                <TextField
-                  fullWidth
-                  label="Year of Passing"
-                  variant="outlined"
-                  value={passingYear}
-                  onChange={(e) => setPassingYear(e.target.value)}
-                  sx={{ mb: 3 }}
-                />
-                <Button
+                <CustomDatePicker onChange={setPassingYear} />
+                <br />
+                <CustomButton
                   onClick={handleSubmit}
+                  text="Continue"
                   variant="contained"
                   sx={{
-                    backgroundImage:
-                      "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-                    backgroundColor: "#26c579",
-                    color: "#fff",
-                    fontWeight: 600,
-                    borderRadius: 30,
-                    padding: "10px 24px",
-                    textTransform: "none",
-                    transition: "0.3s",
-                    // "&:hover": {
-                    //   backgroundColor: "#1e9c61",
-                    // },
-                    "&:hover": {
-                      backgroundColor: "initial",
-                      backgroundImage:
-                        "linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262) !important",
-                    },
+                    backgroundImage: "var(--theme-bg-primary)",
+                    color: "white",
                   }}
-                >
-                  Submit
-                </Button>
-              </>
-            ) : (
-              <>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontFamily: "'Poppins', sans-serif",
-                    fontWeight: 600,
-                    fontSize: "1.4rem",
-                    color: "#222",
-                    textTransform: "capitalize",
-                  }}
-                >
-                  Hello,{" "}
-                  {loading ? (
-                    <Skeleton variant="text" width={120} />
-                  ) : Array.isArray(user) && user.length > 0 ? (
-                    user[0].name
-                  ) : (
-                    "User"
-                  )}
-                </Typography>
-
-                <Typography
-                  sx={{
-                    mt: 1,
-                    fontSize: "1rem",
-                    color: "#555",
-                    fontWeight: 400,
-                    textAlign: "start",
-                  }}
-                >
-                  {loading ? (
-                    <Skeleton variant="text" width="80%" />
-                  ) : Array.isArray(user) && user.length > 0 ? (
-                    user[0].message
-                  ) : (
-                    "Welcome to our platform!"
-                  )}
-                </Typography>
-
-                <Button
-                  onClick={handleModalClose}
-                  variant="contained"
-                  sx={{
-                    mt: 3,
-                    backgroundColor: "#26c579",
-                    color: "#fff",
-                    fontWeight: 600,
-                    borderRadius: 30,
-                    padding: "10px 24px",
-                    textTransform: "none",
-                    transition: "0.3s",
-                    "&:hover": {
-                      backgroundColor: "#1e9c61",
-                    },
-                  }}
-                >
-                  Continue
-                </Button>
+                />
               </>
             )}
           </Box>
         </CustomModal>
-        <Navbar data={user} />
-        {isQuestionsFetched ? (
-          <AssessmentCarousel questions={assessmentQuestions} />
+        {/* Navbar display */}
+        <Navbar />
+
+        {/* Show Skeleton if questions are loading, otherwise show Carousel */}
+        {state.questionsLoading ? (
+          <CarouselSkeleton />
         ) : (
-          <CarouselSKeleton />
+          <AssessmentCarousel questions={assessmentQuestions} />
         )}
       </div>
     </div>

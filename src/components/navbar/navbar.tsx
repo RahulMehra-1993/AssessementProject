@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext} from "react";
 import {
   AppBar,
   Toolbar,
   Typography,
-  Avatar,
+
   Box,
   Divider,
   useTheme,
@@ -11,37 +11,34 @@ import {
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import styles from "./navbar.module.css";
+import UserSkelton from "../../shared/skeltons/user-skelton";
+import { StoreContext } from "../../store/state-context";
 
-interface NavbarProps {
-  data: {
-    createdAt: string;
-    name: string;
-    email: string;
-    avatar: string;
-    id: string;
-    message: string;
-  }[];
-}
 
-const Navbar: React.FC<NavbarProps> = ({ data }) => {
-  const [user, setUser] = useState<{
-    name?: string;
-    email?: string;
-    avatar?: string;
-    message?: string;
-  } | null>(null);
+
+const Navbar = () => {
+  // context
+  const context = useContext(StoreContext);
+  if (!context)
+    throw new Error("StoreContext must be used within a StoreProvider");
+  const { state, dispatch } = context;
 
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm")); // Correctly using breakpoints for small screens
-
-  useEffect(() => {
-    if (data.length > 0) {
-      setUser(data[0]); // Take the first item from the passed data
-    }
-  }, [data]);
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <AppBar position="sticky" className={styles.navbar} sx={{ boxShadow: 4 }}>
+    <AppBar
+      className={styles.navbar}
+      sx={{
+        boxShadow: 4,
+        "& .MuiToolbar-root": {
+          fontWeight: "bold",
+          fontSize: "12px",
+          padding: "",
+          minHeight: "48px",
+        },
+      }}
+    >
       <Toolbar
         sx={{
           display: "flex",
@@ -51,7 +48,11 @@ const Navbar: React.FC<NavbarProps> = ({ data }) => {
       >
         {/* Logo & Project Name */}
         <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
-          <img src="assets/optimus.png" alt="Logo" className={styles.logo} />
+          <img
+            src="/public/assets/optimus.png"
+            alt="Logo"
+            className={styles.logo}
+          />
           {!isSmallScreen && (
             <>
               <Divider
@@ -59,30 +60,14 @@ const Navbar: React.FC<NavbarProps> = ({ data }) => {
                 flexItem
                 sx={{ backgroundColor: "white", ml: 1, mr: 1 }}
               />
-              <Typography variant="h6" className={styles.projectName}>
-                Assessment
-              </Typography>
+              <Typography className={styles.projectName}>Assessment</Typography>
             </>
           )}
         </Box>
 
         {/* User Section */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          {/* Avatar or Account Icon */}
-          {user?.avatar ? (
-            <Avatar
-              src={user.avatar}
-              alt={user.name}
-              className={styles.userAvatar}
-              sx={{ width: 40, height: 40 }}
-            />
-          ) : (
-            <AccountCircleIcon
-              className={styles.userIcon}
-              sx={{ fontSize: 40 }}
-            />
-          )}
-
+          <AccountCircleIcon className={styles.userIcon} />
           {/* Divider */}
           <Divider
             orientation="vertical"
@@ -91,18 +76,15 @@ const Navbar: React.FC<NavbarProps> = ({ data }) => {
           />
 
           {/* User Email / Guest */}
-          {user?.email ? (
+          {state.userLoading ? (
+            <UserSkelton />
+          ) : (
             <Typography
-              variant="body1"
               className={styles.userEmail}
               sx={{ display: "flex", alignItems: "center" }}
             >
-              {user.email}
+              {state.user ? state.user[0]?.name : "User not found"}
             </Typography>
-          ) : (
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Typography variant="body1">Guest User</Typography>
-            </Box>
           )}
         </Box>
       </Toolbar>
