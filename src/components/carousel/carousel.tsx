@@ -22,10 +22,10 @@ import { CheckCircle, NavigateNext } from "@mui/icons-material";
 import CustomModal from "../modal/modal";
 import CustomSnackBar from "../../shared/snackbar/snackbar";
 import CustomButton from "../../shared/buttons/custom-button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { StoreContext } from "../../store/state-context";
 import { ActionType as actions } from "../../constants/actions/action.enum";
-import { getData } from "../../services/api-services";
+import { getData, postData } from "../../services/api-services";
 import {
   QUESTIONS,
   TOTAL_QUESTIONS,
@@ -46,6 +46,8 @@ const AssessementCarousel: React.FC<AssessmentProps> = () => {
   }
   const { state, dispatch } = context;
   const navigate = useNavigate();
+  const { id } = useParams(); // Get the 'id' from the URL
+  const { assessmentId } = useParams(); // Get the 'assessmentId' from the URL
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(
     state.currentQuestionIndex
@@ -90,7 +92,8 @@ const AssessementCarousel: React.FC<AssessmentProps> = () => {
     console.log(state.questions);
   }, []);
 
-  const checkMoreQuestions = () => {
+  const checkMoreQuestions = async () => {
+    console.log(currentQuestionIndex);
     console.log(loader);
     // Fetch next question set from DB if needed
     if (
@@ -99,24 +102,70 @@ const AssessementCarousel: React.FC<AssessmentProps> = () => {
     ) {
       console.log("Fetching more questions...");
       setLoader(true);
+      try {
+        const data = await postData(QUESTIONS, {
+          assessmentId: assessmentId,
+          userId: id,
+        });
 
-      getData(QUESTIONS).then((data) => {
-        if (data && Array.isArray(data) && data.length > 0) {
-          const updatedQuestions = [...state.questions, ...data]; // Stack old and new data
+        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
+          const { questions } = data.data[0]; // Destructuring first object
 
+          const updatedQuestions = [...state.questions, ...questions]; // Stack old and new data
           dispatch({
             type: actions.SET_QUESTIONS,
             payload: updatedQuestions,
           });
-
           sessionStorage.setItem("questions", JSON.stringify(updatedQuestions));
+        } else {
+          dispatch({
+            type: actions.SET_SNACKBAR,
+            payload: [
+              {
+                message: "Failed to fetch more questions",
+                show: true,
+                severity: "error",
+                close: () =>
+                  dispatch({ type: actions.SET_SNACKBAR, payload: [] }),
+              },
+            ],
+          });
         }
+
+        // getData(QUESTIONS).then((data) => {
+        //   if (data && Array.isArray(data) && data.length > 0) {
+        //     const updatedQuestions = [...state.questions, ...data]; // Stack old and new data
+
+        //     dispatch({
+        //       type: actions.SET_QUESTIONS,
+        //       payload: updatedQuestions,
+        //     });
+
+        //     sessionStorage.setItem(
+        //       "questions",
+        //       JSON.stringify(updatedQuestions)
+        //     );
+        //   }
+        // });
 
         // Delay hiding the loader to ensure it is visible
         setTimeout(() => {
           setLoader(false);
         }, 2000);
-      });
+      } catch {
+        dispatch({
+          type: actions.SET_SNACKBAR,
+          payload: [
+            {
+              message: "Failed to fetch more questions",
+              show: true,
+              severity: "error",
+              close: () =>
+                dispatch({ type: actions.SET_SNACKBAR, payload: [] }),
+            },
+          ],
+        });
+      }
     }
   };
 
@@ -152,19 +201,20 @@ const AssessementCarousel: React.FC<AssessmentProps> = () => {
   };
 
   const handleSubmit = () => {
-    // const unanswered = selectedAnswers.filter(
-    //   (answer) => answer === null
-    // ).length;
-    // if (unanswered > 0) {
-    //   setSnackbarMessage(`Please answer all questions. ${unanswered} left.`);
-    //   setShowSnackbar(true);
-    //   return;
-    // }
     if (answeredQuestions > 0) {
       setConfirmSubmit(true);
     } else {
-      setSnackbarMessage(`Please answer at least one question.`);
-      setShowSnackbar(true);
+      dispatch({
+        type: actions.SET_SNACKBAR,
+        payload: [
+          {
+            message: "Atleast one question should be answered",
+            show: true,
+            severity: "warning",
+            close: () => dispatch({ type: actions.SET_SNACKBAR, payload: [] }),
+          },
+        ],
+      });
       return;
     }
   };
@@ -172,10 +222,9 @@ const AssessementCarousel: React.FC<AssessmentProps> = () => {
   const confirmSubmission = () => {
     const assessmentResults = state.questions.map((question, index) => ({
       id: question.id,
-      question: question.question,
       selectedAnswer: selectedAnswers[index],
     }));
-
+    // post request logic needs to be implemented
     console.log("POST_REQ:", assessmentResults);
     setIsAssessmentCompleted(true);
     setIsModalOpen(true);
@@ -186,7 +235,7 @@ const AssessementCarousel: React.FC<AssessmentProps> = () => {
     sessionStorage.removeItem("user");
     sessionStorage.setItem("complete", "true");
 
-    // Add a delay (e.g., 3 seconds) before reloading the page
+    // loader check
     setTimeout(() => {
       navigate("/assessment/post_submit");
     }, 3000); // 3000 milliseconds = 3 seconds
@@ -372,7 +421,12 @@ const AssessementCarousel: React.FC<AssessmentProps> = () => {
                   )
                 )}
               </RadioGroup>
-              <Box display="flex" flexWrap={"wrap"} alignItems="center" justifyContent={"center"}>
+              <Box
+                display="flex"
+                flexWrap={"wrap"}
+                alignItems="center"
+                justifyContent={"center"}
+              >
                 <Pagination
                   count={state.questions.length}
                   page={currentQuestionIndex + 1}
@@ -413,11 +467,12 @@ const AssessementCarousel: React.FC<AssessmentProps> = () => {
                 />
 
                 {/* Render the button only when on the last question */}
-                {currentQuestionIndex === state.questions.length - 1 && (
-                  <IconButton onClick={checkMoreQuestions} sx={{ ml: 1 }}>
-                    <ArrowForwardIcon />
-                  </IconButton>
-                )}
+                {currentQuestionIndex === state.questions.length - 1 &&
+                  currentQuestionIndex < TOTAL_QUESTIONS && (
+                    <IconButton onClick={checkMoreQuestions} sx={{ ml: 1 }}>
+                      <ArrowForwardIcon />
+                    </IconButton>
+                  )}
               </Box>
             </FormControl>
           </CardContent>
@@ -432,11 +487,7 @@ const AssessementCarousel: React.FC<AssessmentProps> = () => {
             : "No more questions."}
         </Typography>
       </Card>
-      <CustomSnackBar
-        message={snackbarMessage}
-        show={showSnackbar}
-        close={() => setShowSnackbar(false)}
-      />
+
       <CustomModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <Box
           sx={{

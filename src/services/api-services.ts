@@ -1,10 +1,10 @@
 import axios from "axios";
-import { baseUrl } from "../apis/apis";
+import { baseUrl, productionUrl } from "../apis/apis";
 
 // Create an Axios instance with base URL
 const api = axios.create({
-  baseURL: baseUrl, // Replace with your API URL
-  // baseURL: testUrl, // Replace with your API URL  
+  baseURL: productionUrl, // Replace with your API URL
+  // baseURL: testUrl, // Replace with your API URL
   headers: {
     "Content-Type": "application/json",
   },
@@ -16,7 +16,6 @@ export const getData = async (endpoint: string) => {
     const response = await api.get(endpoint);
     return response.data;
   } catch (error) {
-    console.error("GET Error:", error);
     throw error;
   }
 };
@@ -64,4 +63,3 @@ export const deleteData = async (endpoint: string) => {
     throw error;
   }
 };
-
