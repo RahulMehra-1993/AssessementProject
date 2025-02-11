@@ -1,22 +1,41 @@
-import { Alert, Snackbar, AlertProps } from "@mui/material";
-import React from "react";
+import { Alert, Snackbar } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { Snackbar as SnackbarProps } from "../../models/global/snackbar.model";
 
-interface CustomSnackBarProps {
-  message: string | null |undefined;
-  show: boolean;
-  close: () => void; // Important: Define the close function type
-  severity?: AlertProps["severity"]; // Make severity optional, and of correct type
-}
-
-const CustomSnackBar: React.FC<CustomSnackBarProps> = ({
+const CustomSnackBar: React.FC<SnackbarProps> = ({
   message,
   show,
   close,
-  severity = "info", // Default severity to "info"
+  severity,
 }) => {
+  const [open, setOpen] = useState(show);
+
+  useEffect(() => {
+    console.log("Snackbar Severity:", severity);
+    console.log("Snackbar Message:", message);
+    console.log("Snackbar Show:", show);
+    
+    setOpen(show);
+  }, [message, show, severity]);
+
+  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === "clickaway") return;
+    setOpen(false);
+    close();
+  };
+
   return (
-    <Snackbar open={show} autoHideDuration={3000} onClose={close}>
-      <Alert onClose={close} severity={severity} sx={{ width: "100%" }}>
+    <Snackbar
+      open={open}
+      autoHideDuration={5000}
+      onClose={handleClose}
+      anchorOrigin={{ vertical: "top", horizontal: "center" }}
+    >
+      <Alert
+        onClose={handleClose}
+        severity={severity || "info"} // Default to "info" if severity is undefined
+        sx={{ width: "100%" }}
+      >
         {message}
       </Alert>
     </Snackbar>

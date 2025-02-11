@@ -73,7 +73,6 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ onChange, ...rest }
             fontSize: "14px",
           },
           "& .MuiOutlinedInput-notchedOutline": {
-            border: "2px solid grey",
           },
           "& .MuiPickersDay-root.Mui-selected": {
             backgroundColor: "red !important",

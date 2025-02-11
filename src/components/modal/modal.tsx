@@ -36,8 +36,8 @@ const CustomModal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
           position: "absolute",
           top: "50%",
           left: "50%",
+          width: 700, // 90% width of the viewport
           transform: "translate(-50%, -50%)",
-          width: 400,
           maxWidth: "90%",
           bgcolor: "white", // Clean white background for the modal
           borderRadius: 8, // Rounded corners
