@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Dayjs } from "dayjs";
 import React from "react";
 
-interface CustomDatePickerProps extends Omit<DatePickerProps, "onChange"> {
+interface CustomDatePickerProps extends Omit<DatePickerProps<Dayjs>, "onChange"> {
   onChange: (newValue: Dayjs | null) => void;
 }
 
