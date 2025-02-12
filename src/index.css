@@ -1,10 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Parkinsans:wght@300..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Parkinsans:wght@300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 :root {
-  font-family: "Lato", sans-serif; /* Default font */
-  line-height: 1.5;
-  font-weight: 400;
-
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #1e1e1e; /* Dark background for better contrast */
@@ -15,24 +20,56 @@
   -moz-osx-font-smoothing: grayscale;
 
   /* default font sizes */
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.125rem;
-
-  /* default padding */
-
-
-  /* default border */
+  --font-size-xs: 0.875rem; /* 14px */
+  --font-size-sm: 1rem; /* 16px (Base size) */
+  --font-size-md: 1.125rem; /* 18px */
+  --font-size-lg: 1.25rem; /* 20px */
+  --font-size-xl: 1.5rem; /* 24px */
+  --font-size-2xl: 1.875rem; /* 30px */
+  --font-size-3xl: 2.25rem; /* 36px */
 
   /* Theme Colors */
-  --theme-bg-primary: linear-gradient(to left, #6ea0f0, #6ea4e2, #5ba7dc, #4899d6, #358bd0);
-  --theme-bg-success: linear-gradient(to left, #00796b, #00897b, #009688, #26a69a, #4db6ac);
-  --theme-bg-danger: linear-gradient(to left, #bb462b, #bc423a, #bb4049, #b84056, #b34262);
-  --theme-bg-neutral: linear-gradient(to left, #4a4a4a, #5c5c5c, #707070, #8a8a8a, #a0a0a0);
+  --theme-bg-primary: linear-gradient(
+    to left,
+    #6ea0f0,
+    #6ea4e2,
+    #5ba7dc,
+    #4899d6,
+    #358bd0
+  );
+  --theme-bg-success: linear-gradient(
+    to left,
+    #00796b,
+    #00897b,
+    #009688,
+    #26a69a,
+    #4db6ac
+  );
+  --theme-bg-danger: linear-gradient(
+    to left,
+    #bb462b,
+    #bc423a,
+    #bb4049,
+    #b84056,
+    #b34262
+  );
+  --theme-bg-danger-dark: linear-gradient(
+    to left,
+    #8f2e1e,
+    #902a2c,
+    #8e283a,
+    #8b2946,
+    #862952
+  );
 
-
-
+  --theme-bg-neutral: linear-gradient(
+    to left,
+    #4a4a4a,
+    #5c5c5c,
+    #707070,
+    #8a8a8a,
+    #a0a0a0
+  );
 }
 
 a {
@@ -48,7 +85,7 @@ a:hover {
 
 html {
   font-size: 16px;
-  font-family: "Montserrat", sans-serif; /* Montserrat for headings */
+  font-family: "Parkinsans", serif;
   font-weight: 400;
   line-height: 1.5;
   color: #1e1e1e;

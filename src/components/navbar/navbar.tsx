@@ -1,9 +1,8 @@
-import React, { useContext} from "react";
+import { useContext } from "react";
 import {
   AppBar,
   Toolbar,
   Typography,
-
   Box,
   Divider,
   useTheme,
@@ -12,19 +11,20 @@ import {
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import styles from "./navbar.module.css";
 import UserSkelton from "../../shared/skeltons/user-skelton";
-import { StoreContext } from "../../store/state-context";
-
-
+import { StoreContext } from "../../store/stateContext";
+import useApi from "../../services/useCustomApiService";
 
 const Navbar = () => {
-  // context
   const context = useContext(StoreContext);
   if (!context)
     throw new Error("StoreContext must be used within a StoreProvider");
-  const { state, dispatch } = context;
+
+  const { state } = context;
+  const { loading } = useApi();
 
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
 
   return (
     <AppBar
@@ -33,8 +33,7 @@ const Navbar = () => {
         boxShadow: 4,
         "& .MuiToolbar-root": {
           fontWeight: "bold",
-          fontSize: "12px",
-          padding: "",
+          fontSize: "var(--font-size-sm)",
           minHeight: "48px",
         },
       }}
@@ -46,44 +45,33 @@ const Navbar = () => {
           alignItems: "center",
         }}
       >
-        {/* Logo & Project Name */}
         <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
-          <img
-            src="/public/assets/optimus.png"
-            alt="Logo"
-            className={styles.logo}
-          />
+          <img src="/assets/optimus.png" alt="Logo" className={styles.logo} />
           {!isSmallScreen && (
             <>
               <Divider
                 orientation="vertical"
                 flexItem
-                sx={{ backgroundColor: "white", ml: 1, mr: 1 }}
+                sx={{ backgroundColor: "white", mx: 1 }}
               />
               <Typography className={styles.projectName}>Assessment</Typography>
             </>
           )}
         </Box>
 
-        {/* User Section */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <AccountCircleIcon className={styles.userIcon} />
-          {/* Divider */}
           <Divider
             orientation="vertical"
             flexItem
-            sx={{ backgroundColor: "white", ml: 1, mr: 1 }}
+            sx={{ backgroundColor: "white", mx: 1 }}
           />
 
-          {/* User Email / Guest */}
-          {state.userLoading ? (
+          {loading ? (
             <UserSkelton />
           ) : (
-            <Typography
-              className={styles.userEmail}
-              sx={{ display: "flex", alignItems: "center" }}
-            >
-              {state.user ? state.user[0]?.name : "User not found"}
+            <Typography className={styles.userEmail}>
+              {state?.user?.[0]?.name || "User"}
             </Typography>
           )}
         </Box>

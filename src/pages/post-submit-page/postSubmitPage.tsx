@@ -1,7 +1,7 @@
 import React from "react";
 import { Container, Typography, Box } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import styles from "./post-submit.module.css"; // Import module CSS
+import styles from "./postSubmitPage.module.css"; // Import module CSS
 
 const PostSubmission: React.FC = () => {
   return (

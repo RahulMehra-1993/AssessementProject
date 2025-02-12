@@ -5,11 +5,15 @@ import { useState } from "react";
 import { Dayjs } from "dayjs";
 import React from "react";
 
-interface CustomDatePickerProps extends Omit<DatePickerProps<Dayjs>, "onChange"> {
+interface CustomDatePickerProps
+  extends Omit<DatePickerProps<Dayjs>, "onChange"> {
   onChange: (newValue: Dayjs | null) => void;
 }
 
-const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ onChange, ...rest }) => {
+const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
+  onChange,
+  ...rest
+}) => {
   const [passingYear, setPassingYear] = useState<Dayjs | null>(null);
 
   const handleChange = (newValue: Dayjs | null) => {
@@ -39,19 +43,17 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ onChange, ...rest }
           },
           desktopPaper: {
             sx: {
-              
-              width: "300px", // Custom width
-              height: "200px", // Custom height
-              overflow:"hidden",
-              "& .MuiPickersYear-yearButton":{
-                fontSize:"12px !important",
-                padding:"0"
+              width: "300px",
+              height: "200px",
+              overflow: "hidden",
+              "& .MuiPickersYear-yearButton": {
+                fontSize: "12px !important",
+                padding: "0",
               },
               "& .MuiPickersYear-yearButton.Mui-selected": {
                 backgroundImage: "var(--theme-bg-danger) !important",
                 color: "white !important",
-                padding:"0 !important",
-                
+                padding: "0 !important",
               },
             },
           },
@@ -61,19 +63,18 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ onChange, ...rest }
           width: "100%",
           font: "initial",
           "& .MuiInputLabel-root": {
-            fontSize: "14px",
+            fontSize: "var(--font-size-xs)",
           },
           "& .MuiInputBase-input": {
-            fontSize: "14px",
+            fontSize: "var(--font-size-xs)",
           },
           "& .MuiOutlinedInput-root": {
-            fontSize: "14px",
+            fontSize: "var(--font-size-xs)",
           },
           "& .MuiInputLabel-shrink": {
-            fontSize: "14px",
+            fontSize: "var(--font-size-xs)",
           },
-          "& .MuiOutlinedInput-notchedOutline": {
-          },
+          "& .MuiOutlinedInput-notchedOutline": {},
           "& .MuiPickersDay-root.Mui-selected": {
             backgroundColor: "red !important",
             color: "white !important",
@@ -83,6 +84,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ onChange, ...rest }
             color: "white !important",
           },
         }}
+        
       />
     </LocalizationProvider>
   );

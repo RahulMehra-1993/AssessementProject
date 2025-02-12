@@ -1,0 +1,5 @@
+
+export enum CONSTRAINTS {
+  PAGE_SIZE = 5,
+  TOTAL_QUESTIONS = 20,
+}

@@ -2,16 +2,14 @@ import { CardContent, Skeleton } from "@mui/material";
 
 const CardContentSkelton = () => {
   return (
-    <CardContent sx={{height: "250px"}}>
-      {/* Skeleton for Question text */}
+    <CardContent sx={{ height: "250px" }}>
       <Skeleton
         variant="text"
         width="80%"
         height={30}
-        sx={{ marginBottom: 2 }}
+        sx={{ marginBottom: 2, m: "var(--font-size-md)" }}
       />
 
-      {/* Skeleton for Radio options */}
       <Skeleton
         variant="text"
         width="60%"
