@@ -1,6 +1,6 @@
 import "./App.css";
-import ErrorPage from "./pages/error/error";
-import Layout from "./pages/layout/layout";
+import ErrorPage from "./pages/error-page/errorPage";
+import Layout from "./pages/layout-page/layoutPage";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,7 +8,7 @@ import {
   useNavigate,
   Navigate,
 } from "react-router-dom";
-import PostSubmission from "./pages/post/post-submit";
+import PostSubmission from "./pages/post-submit-page/postSubmitPage";
 import { useEffect, useState } from "react";
 
 import { ReactNode } from "react";
@@ -53,10 +53,10 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<Navigate to="/assessment/user/assessementID" replace />}
+            element={<Navigate to="/assessment/user_id/assessement_id" replace />}
           />
           <Route
-            path="/assessment/:id/:assessmentId"
+            path="/assessment"
             element={
               <ProtectedRoute>
                 <Layout />

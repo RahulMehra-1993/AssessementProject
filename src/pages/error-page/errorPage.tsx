@@ -2,8 +2,8 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Container, Typography, Button, Box } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import styles from "./error.module.css"; // Import module CSS
-import CustomButton from "../../shared/buttons/custom-button";
+import styles from "./errorPage.module.css"; // Import module CSS
+import CustomButton from "../../shared/buttons/customButton";
 
 const ErrorPage: React.FC = () => {
   const navigate = useNavigate();

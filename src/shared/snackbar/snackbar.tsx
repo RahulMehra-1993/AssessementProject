@@ -1,6 +1,7 @@
 import { Alert, Snackbar } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Snackbar as SnackbarProps } from "../../models/global/snackbar.model";
+import { StoreContext } from "../../store/stateContext";
 
 const CustomSnackBar: React.FC<SnackbarProps> = ({
   message,
@@ -8,17 +9,18 @@ const CustomSnackBar: React.FC<SnackbarProps> = ({
   close,
   severity,
 }) => {
+   const context = useContext(StoreContext);
+    if (!context) {
+      throw new Error("StoreContext must be used within a StoreProvider");
+    }
+    const { state } = context;
   const [open, setOpen] = useState(show);
 
   useEffect(() => {
-    console.log("Snackbar Severity:", severity);
-    console.log("Snackbar Message:", message);
-    console.log("Snackbar Show:", show);
-    
-    setOpen(show);
+   !state.isModalOpen && setOpen(show);
   }, [message, show, severity]);
 
-  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+  const handleClose = (_?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === "clickaway") return;
     setOpen(false);
     close();
@@ -27,7 +29,7 @@ const CustomSnackBar: React.FC<SnackbarProps> = ({
   return (
     <Snackbar
       open={open}
-      autoHideDuration={5000}
+      autoHideDuration={3000}
       onClose={handleClose}
       anchorOrigin={{ vertical: "top", horizontal: "center" }}
     >

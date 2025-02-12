@@ -1,28 +1,36 @@
 import { useContext, useEffect, useState } from "react";
-import styles from "./layout.module.css";
+import styles from "./layoutPage.module.css";
 import Navbar from "../../components/navbar/navbar";
 import CustomModal from "../../components/modal/modal";
 import { Typography, Box, TextField, Divider } from "@mui/material";
-import { getData, postData } from "../../services/api-services";
 import AssessmentCarousel from "../../components/carousel/carousel";
-import CarouselSkeleton from "../../shared/skeltons/carousel-skelton";
-import CustomDatePicker from "../../shared/date/date-picker";
-import CustomButton from "../../shared/buttons/custom-button";
+import CarouselSkeleton from "../../shared/skeltons/carouselSkelton";
+import CustomDatePicker from "../../shared/date/datePicker";
+import CustomButton from "../../shared/buttons/customButton";
 import { Dayjs } from "dayjs";
-import {
-  QUESTIONS,
-  USER as USER_PARAM,
-} from "../../constants/api-constants/apis.enum";
-import { StoreContext } from "../../store/state-context";
+import apiConfig from "../../api.config";
+import { StoreContext } from "../../store/stateContext";
 import { ActionType as actions } from "../../constants/actions/action.enum";
 import UserSkelton from "../../shared/skeltons/user-skelton";
 import CustomSnackBar from "../../shared/snackbar/snackbar";
-import { useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import useApi from "../../services/useCustomApiService";
+import Error from "../../shared/error/error";
 
 const UserWelcome = ({ user }: { user: any[] }) => (
   <>
-    <Typography variant="h5">{user[0]?.name}</Typography>
-    <Typography sx={{ mb: 3 }}>
+    <Typography
+      variant="h5"
+      fontSize={"var(--font-size-xl)"}
+      sx={{
+        backgroundImage: "var(--theme-bg-danger-dark)",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+      }}
+    >
+      {user[0]?.name}
+    </Typography>
+    <Typography sx={{ mb: 3, fontSize: "var(--font-size-sm)" }}>
       Welcome! Please fill out your details to proceed.
     </Typography>
   </>
@@ -40,17 +48,29 @@ const UserForm = ({
   handleSubmit: () => void;
 }) => (
   <>
-    <Typography
-      sx={{ fontWeight: 600, fontSize: "18px", textAlign: "center", mb: 3 }}
-    >
-      Enter Your Details
-    </Typography>
     <TextField
+      autoComplete="off"
       fullWidth
       label="College Name"
       value={collegeName}
       onChange={(e) => setCollegeName(e.target.value)}
-      sx={{ mb: 3 }}
+      sx={{
+        mb: 3,
+        "& .MuiInputBase-input": {
+          fontSize: "var(--font-size-xs)",
+        },
+        "& .MuiOutlinedInput-root": {
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            fontSize: "var(--font-size-xs)",
+          },
+        },
+        "& .MuiInputLabel-root": {
+          fontSize: "var(--font-size-xs)",
+          "&.Mui-focused": {
+            fontSize: "var(--font-size-xs)",
+          },
+        },
+      }}
     />
     <CustomDatePicker onChange={setPassingYear} />
     <CustomButton
@@ -58,79 +78,64 @@ const UserForm = ({
       text="Continue"
       variant="contained"
       sx={{
-        backgroundImage: "var(--theme-bg-primary)",
+        backgroundImage: "var(--theme-bg-danger-dark)",
         color: "white",
         textAlign: "center",
+        fontSize: "12px",
+        borderRadius: "0px",
       }}
     />
   </>
 );
 
 const Layout: React.FC = () => {
+  const { get, post, loading } = useApi();
   const context = useContext(StoreContext);
   if (!context) {
     throw new Error("StoreContext must be used within a StoreProvider");
   }
-
-  const { id } = useParams(); // Get the 'id' from the URL
-  const { assessmentId } = useParams(); // Get the 'assessmentId' from the URL
   const { state, dispatch } = context;
+
+  const [searchParams] = useSearchParams();
+  const user_id = searchParams.get("user_id");
+  const assessment_id = searchParams.get("assessment_id");
+
   const [collegeName, setCollegeName] = useState("");
   const [passingYear, setPassingYear] = useState<Dayjs | null>(null);
   const [renderCarousel, setRenderCarousel] = useState(false);
+  const [formSubmit, setFormSubmit] = useState(false);
 
   useEffect(() => {
     fetchUserData();
   }, [dispatch]);
 
   const fetchUserData = async () => {
-    dispatch({ type: actions.SET_USER_LOADING, payload: true });
+    const storedUser = sessionStorage.getItem("user");
+    const formSubmit = sessionStorage.getItem("form");
+    if (storedUser && formSubmit) {
+      const storedQuestions = sessionStorage.getItem("questions");
+      dispatch({ type: actions.SET_USER, payload: JSON.parse(storedUser) });
+      storedQuestions
+        ? dispatch({
+            type: actions.SET_QUESTIONS,
+            payload: JSON.parse(storedQuestions),
+          })
+        : fetchQuestions();
+      setFormSubmit(true);
+      setRenderCarousel(true);
+    } else {
+      const data = await get(
+        apiConfig.ENDPOINTS.USER +
+          `assessment_id=${assessment_id}&user_id=${user_id}`
+      );
 
-    try {
-      const storedUser = sessionStorage.getItem("user");
-
-      if (storedUser) {
-        dispatch({ type: actions.SET_USER, payload: JSON.parse(storedUser) });
-        dispatch({ type: actions.TOGGLE_MODAL, payload: false });
-        setRenderCarousel(true);
-        fetchQuestions();
-      } else {
-        const data = await getData(
-          USER_PARAM + `user_id=${id}&assessment_id=${assessmentId}`
-        );
-        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
-          const { user } = data.data[0]; // Destructuring first object
-          dispatch({ type: actions.SET_USER, payload: [user] });
-          sessionStorage.setItem("user", JSON.stringify(user));
-        } else {
-          dispatch({
-            type: actions.SET_SNACKBAR,
-            payload: [
-              {
-                message: "Something went wrong",
-                show: true,
-                severity: "error",
-                close: () =>
-                  dispatch({ type: actions.SET_SNACKBAR, payload: [] }),
-              },
-            ],
-          });
-        }
+      if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
+        const { user, questions } = data.data[0]; // Destructuring first object
+        dispatch({ type: actions.SET_USER, payload: [user] });
+        sessionStorage.setItem("user", JSON.stringify(user));
+        sessionStorage.setItem("total", JSON.stringify(questions));
       }
-    } catch (error) {
-      dispatch({
-        type: actions.SET_SNACKBAR,
-        payload: [
-          {
-            message: "User not found",
-            show: true,
-            severity: "error",
-            close: () => dispatch({ type: actions.SET_SNACKBAR, payload: [] }),
-          },
-        ],
-      });
     }
-    dispatch({ type: actions.SET_USER_LOADING, payload: false });
   };
 
   const fetchQuestions = async () => {
@@ -142,46 +147,31 @@ const Layout: React.FC = () => {
       });
       return;
     }
-    dispatch({ type: actions.SET_QUESTIONS_LOADING, payload: true });
-    try {
-      const data = await postData(QUESTIONS, {
-        assessmentId: assessmentId,
-        userId: id,
-      });
 
-      if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
-        const { questions } = data.data[0]; // Destructuring first object
-        dispatch({ type: actions.SET_QUESTIONS, payload: questions });
-      }
-    } catch {
-      dispatch({
-        type: actions.SET_SNACKBAR,
-        payload: [
-          {
-            message: "Failed to fetch questions",
-            show: true,
-            severity: "error",
-            close: () => {},
-          },
-        ],
-      });
+    const data = await post(apiConfig.ENDPOINTS.QUESTIONS, {
+      userId: user_id || "",
+      assessmentId: assessment_id || "",
+    });
+    if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
+      const { questions } = data.data[0]; // Destructuring first object
+      dispatch({ type: actions.SET_QUESTIONS, payload: questions });
+      sessionStorage.setItem("questions", JSON.stringify(questions));
     }
-    dispatch({ type: actions.SET_QUESTIONS_LOADING, payload: false });
   };
 
   const handleModalClose = () => {
     const storedUser = sessionStorage.getItem("user");
-    if (storedUser && state.isModalOpen) {
+    if (storedUser && formSubmit) {
       setRenderCarousel(true);
       fetchQuestions();
-    } else {
-      setRenderCarousel(true);
     }
   };
 
   const handleSubmit = () => {
     if (collegeName && passingYear) {
       sessionStorage.setItem("user", JSON.stringify(state.user));
+      sessionStorage.setItem("form", JSON.stringify(true));
+      setFormSubmit(true);
       setRenderCarousel(true);
       fetchQuestions();
       dispatch({
@@ -198,6 +188,7 @@ const Layout: React.FC = () => {
         borderRadius: 5,
         Width: "600px",
         mx: "auto",
+        height: "100%",
         display: "flex",
         flexDirection: { xs: "column", sm: "row" },
         justifyContent: "space-between",
@@ -206,12 +197,12 @@ const Layout: React.FC = () => {
       }}
     >
       <Box sx={{ flex: 1, textAlign: "center" }}>
-        {state.userLoading ? (
+        {loading ? (
           <UserSkelton />
         ) : state.user?.length ? (
           <UserWelcome user={state.user} />
         ) : (
-          <Typography variant="h5">No user found</Typography>
+          <Error message="User not Found !" />
         )}
       </Box>
       {state.user && state.user?.length > 0 && (
@@ -244,30 +235,25 @@ const Layout: React.FC = () => {
         <CustomSnackBar
           message={state.snackbars[0]?.message}
           show={state.snackbars[0]?.show}
-          close={() =>
-            dispatch({
-              type: actions.SET_SNACKBAR,
-              payload: [
-                {
-                  message: "",
-                  show: false,
-                  severity: "info",
-                  close: () =>
-                    dispatch({ type: actions.SET_SNACKBAR, payload: [] }),
-                },
-              ],
-            })
-          }
+          close={() => {
+            setTimeout(() => {
+              dispatch({
+                type: actions.SET_SNACKBAR,
+                payload: [],
+              });
+            }, 3000); // Corrected timeout value (3 seconds)
+          }}
           severity={state.snackbars[0]?.severity}
         />
-        {state.isModalOpen && (
+
+        {!formSubmit && (
           <CustomModal isOpen={state.isModalOpen} onClose={handleModalClose}>
             {renderModalContent()}
           </CustomModal>
         )}
-        {!state.isModalOpen &&
+        {formSubmit &&
           (renderCarousel ? (
-            state.questionsLoading ? (
+            loading ? (
               <CarouselSkeleton />
             ) : (
               <AssessmentCarousel questions={state.questions} />

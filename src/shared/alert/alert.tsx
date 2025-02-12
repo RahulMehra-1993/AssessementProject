@@ -10,7 +10,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({ open, onClose, message }) => 
   return (
     <Snackbar
       open={open}
-      autoHideDuration={6000}
+      autoHideDuration={3000}
       onClose={onClose}
     >
       <MuiAlert onClose={onClose} severity="success" sx={{ width: "100%" }}>

@@ -8,12 +8,10 @@ import { Snackbar } from "../models/global/snackbar.model";
 interface State {
   user: User[] | null;
   userError: string | null;
-  userLoading: boolean;
 
   questions: Question[];
   questionsError: string | null;
-  questionsLoading: boolean;
-  currentQuestionIndex: number;
+  curIndex: number;
 
   isModalOpen: boolean;
 
@@ -25,12 +23,11 @@ interface State {
 const initialState: State = {
   user: [],
   userError: null,
-  userLoading: false,
 
   questions: [],
   questionsError: null,
-  questionsLoading: false,
-  currentQuestionIndex: 0,
+
+  curIndex: 0,
 
   isModalOpen: true,
 
@@ -39,7 +36,7 @@ const initialState: State = {
     {
       message: "",
       show: false,
-      severity: "info", // Default severity to "info"
+      severity: "info", 
       close: () => {},
     },
   ],
@@ -48,11 +45,11 @@ const initialState: State = {
 type Action =
   | { type: ActionType.SET_USER; payload: User[] }
   | { type: ActionType.SET_USER_ERROR; payload: string }
-  | { type: ActionType.SET_USER_LOADING; payload: boolean }
+  // | { type: ActionType.SET_USER_LOADING; payload: boolean }
   | { type: ActionType.SET_QUESTIONS; payload: Question[] }
   | { type: ActionType.SET_CURRENT_QUESTION_INDEX; payload: number }
   | { type: ActionType.SET_QUESTIONS_ERROR; payload: string }
-  | { type: ActionType.SET_QUESTIONS_LOADING; payload: boolean }
+  // | { type: ActionType.SET_QUESTIONS_LOADING; payload: boolean }
   | { type: ActionType.TOGGLE_MODAL; payload: boolean }
   | { type: ActionType.SET_COMPLETE; payload: boolean }
   | { type: ActionType.SET_SNACKBAR; payload: Snackbar[] };
@@ -62,20 +59,20 @@ type Action =
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case ActionType.SET_USER:
-      return { ...state, user: [...action.payload], userError: null };
+      return { ...state, user: Array.isArray(action.payload) ? [...action.payload] : [] };
     case ActionType.SET_USER_ERROR:
       return { ...state, userError: action.payload };
-    case ActionType.SET_USER_LOADING:
-      return { ...state, userLoading: action.payload };
+    // case ActionType.SET_USER_LOADING:
+    //   return { ...state, userLoading: action.payload };
 
     case ActionType.SET_QUESTIONS:
-      return { ...state, questions: [...action.payload], questionsError: null };
+      return { ...state, questions: Array.isArray(action.payload) ? [...action.payload] : []};
     case ActionType.SET_QUESTIONS_ERROR:
       return { ...state, questionsError: action.payload };
-    case ActionType.SET_QUESTIONS_LOADING:
-      return { ...state, questionsLoading: action.payload };
+    // case ActionType.SET_QUESTIONS_LOADING:
+    //   return { ...state, questionsLoading: action.payload };
     case ActionType.SET_CURRENT_QUESTION_INDEX:
-      return { ...state, currentQuestionIndex: action.payload };
+      return { ...state, curIndex: action.payload };
 
     case ActionType.TOGGLE_MODAL:
       return {

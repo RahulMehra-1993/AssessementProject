@@ -22,7 +22,11 @@ const QuestionSkeleton = () => {
           overflow: "hidden",
         }}
       >
-        <Skeleton variant="rectangular"  height={10} sx={{ mb: 2 }} />
+        <Skeleton
+          variant="rectangular"
+          height={10}
+          sx={{ m: "var(--font-size-md)" }}
+        />
 
         <Breadcrumbs sx={{ mb: 2 }}>
           <Skeleton variant="text" width={80} height={20} />
